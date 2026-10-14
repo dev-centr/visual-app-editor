@@ -1,0 +1,12 @@
+= Widget Bench
+:page-audience: Developer
+
+Widget Bench is an offline desktop app for building Flutter screens visually.
+It edits the Dart files in your project directly, so hand-written code stays where you put it, and it can load widgets from Material, Cupertino, or third-party packages such as shadcn_ui, forui, fluent_ui and macos_ui.
+
+image::screenshot.png[Widget Bench editing the sample project: widget tree on the left, phone canvas in the middle, properties on the right]
+
+* xref:getting-started.adoc[] - install, open a project, make a first edit.
+* xref:spec.adoc[] - goals, architecture, file formats and roadmap.
+* xref:toolkit-manifests.adoc[] - add a widget package to the toolbox.
+* xref:changelog.adoc[]

@@ -1,0 +1,34 @@
+= Toolkit manifests
+:page-audience: Developer
+
+A toolkit manifest is a small SDL file that tells Widget Bench which Dart package to scan for widgets and how to group them in the toolbox.
+
+image::screenshot.png[Toolbox and properties generated from scanned widget constructors]
+
+== Where manifests live
+
+* Bundled: `toolkits/*.sdl` inside the app (widgets, material, cupertino, shadcn_ui, forui, fluent_ui, macos_ui).
+* Per project: `<project>/.widget_bench/toolkits/*.sdl`. A project manifest with the same id replaces the bundled one.
+
+== Format
+
+[source,sdl]
+----
+toolkit "forui" {
+	name "Forui"                         // label in the Toolkits tab
+	package "forui"                      // pub package to scan
+	import "package:forui/forui.dart"    // import added for inserted widgets
+	library "src/widgets"                // folders under the package lib/ to scan (one or more)
+	exclude "^_" "Style" "Data$"         // regular expressions on class names to skip
+	include "FButton"                    // regular expressions that override exclude
+	base "FWidget"                       // extra base classes that mark a class as a widget
+	category "Buttons" "FButton" "FBadge" // toolbox group, then class names
+}
+----
+
+== How scanning works
+
+. The package folder is resolved from the project's `.dart_tool/package_config.json`. The `flutter` package falls back to `$FLUTTER_ROOT/packages/flutter/lib`.
+. Every `.dart` file under the `library` folders is parsed with `package:analyzer` (syntax only, no network, no build).
+. A public, non-abstract class is a widget when its `extends` chain reaches a known widget base (`StatelessWidget`, `StatefulWidget`, `RenderObjectWidget`, ... or a `base` from the manifest).
+. Each public constructor becomes a toolbox entry. Its parameters (name, type, required, default value) drive the properties panel and the inserted snippet.

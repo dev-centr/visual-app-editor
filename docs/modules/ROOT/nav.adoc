@@ -1,0 +1,5 @@
+* xref:index.adoc[Widget Bench]
+** xref:getting-started.adoc[Getting started]
+** xref:spec.adoc[Widget Bench specification]
+** xref:toolkit-manifests.adoc[Toolkit manifests]
+** xref:changelog.adoc[Changelog]

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="8 12 48 46" role="img" aria-label="Widget Bench">
+  <g fill="currentColor">
+    <rect x="14" y="14" width="22" height="14" rx="3"/>
+    <rect x="38" y="14" width="12" height="14" rx="3" opacity=".7"/>
+    <rect x="14" y="30" width="36" height="8" rx="3" opacity=".85"/>
+    <rect x="10" y="44" width="44" height="6" rx="3"/>
+    <rect x="16" y="50" width="5" height="6" rx="2"/>
+    <rect x="43" y="50" width="5" height="6" rx="2"/>
+  </g>
+</svg>

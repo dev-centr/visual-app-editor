@@ -1,0 +1,5 @@
+name: widget-bench
+title: Widget Bench
+version: ~
+nav:
+  - modules/ROOT/nav.adoc

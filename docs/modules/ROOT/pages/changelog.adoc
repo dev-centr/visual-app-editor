@@ -1,0 +1,14 @@
+= Changelog
+:page-audience: Developer
+
+Functional changes to Widget Bench, newest first.
+
+image::screenshot.png[Widget Bench editor]
+
+[cols="1,3"]
+|===
+| Date | Change
+
+| 2026-10-14
+| xref:changelog-details/2026-10-14 - First editor build.adoc[First editor build]: open a Flutter project, edit pages visually with source round-trip, toolbox generated from Material, Cupertino and third-party packages, in-process preview, `flutter run` hot reload, desktop installers.
+|===

@@ -1,0 +1,236 @@
+= Widget Bench specification
+:page-audience: Developer
+:toc:
+
+Widget Bench is an open-source, offline desktop app, written in Flutter, for building Flutter user interfaces visually.
+This page states what it must do, how it is built, the file formats it reads and writes, and what comes next.
+Sections marked *Implemented* describe the current code; *Planned* items are on the roadmap.
+
+image::screenshot.png[Editor layout: navigation rail and widget tree on the left, device canvas in the middle, properties on the right, toolbar on top]
+
+== Goals
+
+. *Edit real code.* The source of truth is the project's own `.dart` files. There is no proprietary project format that has to be exported.
+. *Keep custom code.* Visual edits change only the expressions they touch. Comments, formatting, state classes, helper methods and imports elsewhere in the file survive byte-for-byte.
+. *Any widget library.* The toolbox is not hard-coded. It is generated from the public widget constructors of whichever packages the project uses.
+. *Offline.* No account, no cloud service, no telemetry. Everything works from the local Flutter SDK and pub cache.
+. *Desktop first.* Windows, Linux and macOS, x64 and arm64 where Flutter supports the host.
+
+=== Non-goals (for now)
+
+* Backend, database or authentication builders.
+* Hosting or app-store publishing.
+* Editing non-widget logic visually (state management, navigation graphs).
+
+== User interface
+
+[cols="1,3"]
+|===
+| Area | Behaviour
+
+| Toolbar (top)
+| Project name, page picker, Design / Split / Code switch, device size, undo / redo, save, *Run* (live app), open project, About.
+
+| Navigation rail (far left)
+| Icons for *Pages*, *Toolbox*, *Tree*, *Theme*, *Toolkits*. Selecting one swaps the left panel.
+
+| Left panel
+| Pages list with *New page*; toolbox with search, category groups and drag sources; widget tree with move up / down, wrap-with and delete; theme seed colour and brightness; toolkit list with load / unload and *pub get*.
+
+| Canvas (center)
+| The selected page rendered inside a phone, tablet or desktop frame on a dotted backdrop, with zoom. Clicking a widget selects it; the selection is outlined and labelled.
+
+| Properties (right)
+| Every constructor parameter of the selected widget, with type, required marker, default value hint and current source expression. Booleans get a switch, colours get swatches; all other values are Dart expressions.
+
+| Code view
+| The current file, editable. *Apply* re-parses and refreshes the tree; invalid Dart is refused.
+
+| Status bar
+| Last action, edit errors and live-run output.
+|===
+
+The editor uses a dark theme. The canvas uses the project's preview theme (seed colour and brightness from `widget_bench.sdl`).
+
+== Architecture
+
+[source,text]
+----
+lib/
+  main.dart                    entry point, --version, --screenshot
+  src/sdl/sdl.dart             SDL reader / writer
+  src/toolkit/toolkit.dart     WidgetSpec, WidgetParam, ToolkitManifest, Toolkit
+  src/toolkit/introspector.dart  analyzer-based package scanner
+  src/toolkit/registry.dart    manifest discovery, package resolution, loaded toolkits
+  src/source/dart_document.dart  AST model of pages + structural text edits
+  src/project/project.dart     project folder, documents, widget_bench.sdl
+  src/preview/values.dart      literal expression evaluator
+  src/preview/renderer.dart    in-process widget interpreter
+  src/preview/live_runner.dart flutter run + hot reload driver
+  src/ui/...                   editor shell, panels, canvas, properties, code view
+toolkits/*.sdl                 bundled toolkit manifests
+----
+
+Data flow for one edit:
+
+. The UI calls an `EditorState` action (for example *set argument*).
+. `DartDocument` computes a text edit from AST offsets, applies it to the source string, and re-parses.
+. If the result has syntax errors the edit is rolled back and reported.
+. The page tree is rebuilt from the new AST; selection is restored by tree path.
+. The canvas and panels rebuild. *Save* writes dirty files and, when the live app runs, triggers hot reload.
+
+== Toolkit plugins
+
+*Implemented.*
+A toolkit is a manifest (see xref:toolkit-manifests.adoc[]) plus the package sources it points at.
+
+Discovery::
+Bundled manifests ship as app assets. Projects can add or override manifests in `.widget_bench/toolkits/`.
+
+Resolution::
+Package `lib/` folders come from `.dart_tool/package_config.json`. For the `flutter` package the scanner falls back to `$FLUTTER_ROOT` or the `flutter` executable on `PATH`.
+
+Introspection::
+`package:analyzer` parses each file without resolution (`parseString`). This needs no Dart SDK summary, works on unresolved projects, and is fast enough to scan the core, Material and Cupertino libraries (about 500 constructors combined) at project open.
+A class is a widget when its superclass chain within the package reaches a known widget base or a manifest `base`.
+Each public constructor yields a `WidgetSpec` with ordered parameters: name, declared type (field type for `this.x` and `super.x` parameters when declared), named or positional, required, default value.
+
+Palette::
+Entries are grouped by manifest `category`; everything else lands in *Other* (hidden behind the *Common* filter).
+The insertion snippet fills required parameters with placeholders based on type (`'label'`, `0`, `false`, `() {}`, `const Text('child')`) and adds `children: []` for multi-child widgets.
+
+*Planned.*
+
+* Resolved introspection (`AnalysisContextCollection`) to follow superclasses across packages, read inherited parameters and expand typedefs.
+* Per-toolkit preview adapters so third-party widgets render natively in the in-process preview (see <<preview>>).
+* Import management: add the manifest `import` to the file when a widget from a new toolkit is inserted.
+* Icons per palette entry from manifest hints.
+
+== Source round-trip
+
+*Implemented.*
+
+Page detection::
+Any class whose superclass is `StatelessWidget`, `State<T>` or another `*Widget` and that declares `build`. The page tree root is the expression returned by `build` (expression body or the first `return` outside closures). A `State<T>` page is named after `T`.
+
+Widget recognition::
+Without resolution, `Text('a')` parses as a method invocation and `const Text('a')` as an instance creation. Both are accepted, as are `Type.named(...)` and prefixed imports. Known value classes (`EdgeInsets`, `TextStyle`, `BoxDecoration`, `Color`, ...) and types ending in `Style`, `Data` or `Controller` are not treated as widgets; class names from loaded toolkits always are.
+
+Tree::
+Named arguments whose value is a widget call become slots (`appBar`, `body`, `child`, `title`, ...). List literals become child lists (`children`, `actions`, `destinations`). Each node has a stable path of child indexes from the page root.
+
+Edits::
+[cols="1,3"]
+|===
+| Operation | Text change
+
+| Set argument | Replace the argument expression, or insert `name: value` before the closing parenthesis, respecting trailing commas and multi-line layout.
+| Set positional | Replace or prepend a positional argument.
+| Remove argument | Delete `name: value` and its comma.
+| Insert child | Append to `children: [...]` (or at an index), or add `child:` when the parent takes a single child and has none.
+| Delete | Remove a list element or the named slot that holds the widget.
+| Wrap | Replace the node with `Wrapper(extra, child: node)` or `children: [node]`.
+| Reorder | Swap two neighbouring list elements.
+| Code view | Replace the whole file after a successful parse.
+|===
+
+Constness::
+Inserting a non-constant expression under a `const` constructor or literal would not compile. Before such an edit the editor removes the enclosing `const` keywords (and turns a `const` local into `final`). Edits whose new text is itself constant (literals, `Colors.x`, enum values) leave `const` alone.
+
+Safety::
+Every edit re-parses. Any syntax error rolls the edit back. Undo / redo keep whole-file snapshots.
+
+*Planned.*
+
+* Formatting the edited region with `dart_style`, matching the project's line length.
+* Resolved semantic checks (types, missing required arguments) through the analysis server, shown as problems in the properties panel.
+* Editing widgets built in helper methods and in other files (follow the call to its declaration).
+* Drag to reorder on the canvas and tree.
+
+[[preview]]
+== Preview
+
+Two complementary approaches exist. Both are part of the design.
+
+=== In-process rendering
+
+*Implemented.*
+The page tree from source is interpreted into real Flutter widgets inside the editor.
+Literal arguments are evaluated (strings, numbers, booleans, `Colors.*`, `Color(...)`, `EdgeInsets.*`, `BorderRadius.*`, `TextStyle`, `BoxDecoration`, `InputDecoration`, alignment and axis enums, common `Icons.*`).
+About sixty common Material, Cupertino and core widgets render natively. Any other widget renders as a labelled frame that still lays out its children, so trees from every toolkit stay visible and selectable.
+Callbacks are replaced with no-ops; non-literal values fall back to defaults.
+
+Strengths: instant, works on broken or unresolved projects, selection maps exactly to source nodes.
+Limits: no user code runs, so custom widgets, state and data-driven content are approximations.
+
+=== Running the target app
+
+*Implemented (first version).*
+*Run* starts `flutter run -d <desktop>` in the project folder. Saving sends `r` (hot reload) to the tool; the VM service URI is captured from its output.
+
+*Planned.*
+
+* Connect to the VM service and use the widget inspector protocol to map the running app's selection back to source locations (`creationLocation`), enabling click-to-select in the real app.
+* Embed the running app's frames in the canvas (texture sharing or periodic screenshots via `_flutter.screenshot`) so both previews live in one place.
+* A generated preview harness (`.widget_bench/preview/main.dart`) that wraps one page in `MaterialApp` with mock data, so a single page can run without the app's navigation.
+
+== File formats
+
+All editor configuration uses SDL (https://sdlang.org[Simple Declarative Language]).
+
+=== Project settings: `widget_bench.sdl`
+
+Lives in the project root. Safe to commit.
+
+[source,sdl]
+----
+project "sample_app" {
+	toolkits "widgets" "material" "cupertino"   // manifest ids to load
+	device "phone"                               // phone | tablet | desktop
+	theme seed="#4B8BFF" brightness="light"      // preview theme only
+}
+----
+
+=== Toolkit manifests: `toolkits/*.sdl`
+
+See xref:toolkit-manifests.adoc[].
+
+=== Dart sources
+
+Ordinary Flutter code. Widget Bench adds nothing to it: no markers, no generated regions.
+
+== Packaging and delivery
+
+[cols="1,1,2"]
+|===
+| Platform | Architectures | Artifact
+
+| Windows | x64, arm64 | Inno Setup installer (`packaging/windows/build-installer.ps1`)
+| Linux | x64, arm64 | AppImage and `.deb` (`packaging/linux/build-packages.sh`)
+| macOS | arm64 | `.dmg` (`packaging/macos/build-dmg.sh`), unsigned
+|===
+
+CI builds every slice on pushes and pull requests and uploads the installers as workflow artifacts.
+The version shown in About and `--version` comes from `--dart-define=WB_VERSION` / `WB_BUILD`, stamped by CI.
+
+== Roadmap
+
+. *0.1 - first public release*
+** Ship the installers above as a GitHub Release.
+** Include a screenshot of the running app on the release news page / newsletter post that announces it.
+** Signed Windows installer and notarized macOS dmg; winget manifest.
+. *0.2 - resolved analysis*
+** Analysis-server integration for diagnostics and semantic widget detection.
+** Import management for inserted toolkit widgets.
+** `dart_style` formatting of edited regions.
+. *0.3 - live link*
+** VM service inspector link: select in the running app, jump to source.
+** Embedded live frames in the canvas.
+** Per-page preview harness with mock data.
+. *0.4 - toolkit adapters*
+** Native in-process rendering for shadcn_ui, forui, fluent_ui and macos_ui through optional adapter packages.
+** Theme panel that edits the app's own `ThemeData` source.
+. *Later*
+** Components (extract selection into a new widget class).
+** Responsive breakpoints in the canvas.
+** Auto-update channel (winget, AppImage update info, Sparkle).

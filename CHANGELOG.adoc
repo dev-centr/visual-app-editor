@@ -1,0 +1,11 @@
+= Changelog
+
+Functional changes, newest first. Details: link:docs/modules/ROOT/pages/changelog.adoc[docs changelog].
+
+[cols="1,3"]
+|===
+| Date | Change
+
+| 2026-10-14
+| First editor build: open a Flutter project and edit pages visually with source round-trip; toolbox generated from Material, Cupertino and third-party packages; in-process preview; `flutter run` with hot reload on save; installer scripts for Windows, Linux and macOS.
+|===

@@ -1,0 +1,36 @@
+= Getting started
+:page-audience: Developer
+
+This page takes you from a fresh install to a first saved edit in a Flutter project.
+
+image::screenshot.png[The editor after opening the sample project]
+
+== Install
+
+Download the installer for your platform from the project's CI artifacts (no public release has shipped yet):
+
+* Windows x64 / arm64: `WidgetBench-<version>-windows-<arch>-setup.exe` (Inno Setup).
+* Linux x64 / arm64: `WidgetBench-<version>-<arch>.AppImage` or `widget-bench_<version>_<arch>.deb`.
+* macOS arm64: `WidgetBench-<version>-macos-arm64.dmg` (unsigned; right-click -> Open the first time).
+
+Widget Bench reads widget packages from disk. Install the https://docs.flutter.dev/get-started/install[Flutter SDK] and keep `flutter` on `PATH` (or set `FLUTTER_ROOT`) so the Material, Cupertino and core widget toolkits can be found.
+
+== Open a project
+
+. Start Widget Bench.
+. Click *Open project* and enter the folder that holds `pubspec.yaml`, or click *Create and open the sample project*.
+. Run *Toolkits -> pub get* once if the project has never been resolved. Third-party toolkits are read from the packages listed in `.dart_tool/package_config.json`.
+
+You can also pass the folder on the command line: `widget_bench <project-folder>`.
+
+== Make an edit
+
+. Pick a page in the toolbar or the *Pages* tab.
+. Click a widget on the canvas or in the *Tree* tab.
+. Change a value in *Properties* and press Enter. Values are Dart expressions, for example `'Hello'`, `24`, `Colors.teal` or `EdgeInsets.all(12)`.
+. Drag a widget from the *Toolbox* onto a tree row, or click it to add it under the selection.
+. Press *Ctrl+S* to write the file. *Ctrl+Z* / *Ctrl+Y* undo and redo.
+
+== Run the real app
+
+*Run* starts `flutter run` for the project on the desktop device. Each save then sends a hot reload, so the running app always matches the file on disk.

@@ -79,10 +79,10 @@ jobs:
           ./packaging/windows/build-installer.ps1 -Arch ${{ matrix.arch }}
       - name: Linux AppImage and deb
         if: runner.os == 'Linux'
-        run: packaging/linux/build-packages.sh
+        run: bash packaging/linux/build-packages.sh
       - name: macOS dmg
         if: runner.os == 'macOS'
-        run: packaging/macos/build-dmg.sh
+        run: bash packaging/macos/build-dmg.sh
 
       - name: Smoke test --version
         shell: bash

@@ -1,0 +1,6 @@
+// Widget Bench project settings. Safe to commit; edited by the app.
+project "sample_app" {
+	toolkits "widgets" "material" "cupertino"
+	device "phone"
+	theme seed="#4B8BFF" brightness="light"
+}

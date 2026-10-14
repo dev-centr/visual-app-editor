@@ -1,0 +1,9 @@
+toolkit "cupertino" {
+	name "Cupertino"
+	package "flutter"
+	import "package:flutter/cupertino.dart"
+	library "src/cupertino"
+	exclude "^_" "Theme" "Localizations" "Route" "Painter" "Data$" "Delegate" "Controller" "Scope"
+	category "Structure" "CupertinoPageScaffold" "CupertinoNavigationBar" "CupertinoTabScaffold" "CupertinoTabBar"
+	category "Controls" "CupertinoButton" "CupertinoSwitch" "CupertinoSlider" "CupertinoTextField" "CupertinoSegmentedControl"
+}

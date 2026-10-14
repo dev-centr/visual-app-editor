@@ -1,0 +1,7 @@
+toolkit "forui" {
+	name "Forui"
+	package "forui"
+	import "package:forui/forui.dart"
+	library "src/widgets"
+	exclude "^_" "Style" "Data$" "Controller" "Theme"
+}

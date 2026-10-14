@@ -1,0 +1,12 @@
+// Core Flutter widgets layer (layout, text, images).
+toolkit "widgets" {
+	name "Widgets (core)"
+	package "flutter"
+	import "package:flutter/widgets.dart"
+	library "src/widgets"
+	exclude "^Render" "Inherited" "Element$" "^Raw" "^Sliver" "Notification" "Listener$" "^_" "Restoration" "^Debug" "Semantics" "Shortcuts" "Actions" "^Focus" "Overlay" "Navigator" "Router" "Scrollable" "Viewport" "Shrink" "^Basic"
+	category "Layout" "Column" "Row" "Stack" "Positioned" "Center" "Align" "Padding" "SizedBox" "Expanded" "Flexible" "Spacer" "Wrap" "Container" "ConstrainedBox" "AspectRatio" "FittedBox"
+	category "Content" "Text" "RichText" "Icon" "Image" "Placeholder"
+	category "Scrolling" "ListView" "GridView" "SingleChildScrollView" "PageView"
+	category "Interaction" "GestureDetector" "Opacity" "Visibility"
+}

@@ -1,0 +1,11 @@
+toolkit "material" {
+	name "Material"
+	package "flutter"
+	import "package:flutter/material.dart"
+	library "src/material"
+	exclude "^_" "Theme" "Localizations" "Route" "Painter" "^Material$" "Ink" "Data$" "Delegate" "Controller" "Scope" "Selection" "Tooltip"
+	category "Structure" "Scaffold" "AppBar" "BottomAppBar" "NavigationBar" "NavigationRail" "Drawer" "TabBar" "BottomNavigationBar"
+	category "Buttons" "ElevatedButton" "FilledButton" "OutlinedButton" "TextButton" "IconButton" "FloatingActionButton" "SegmentedButton"
+	category "Inputs" "TextField" "TextFormField" "Checkbox" "Switch" "Radio" "Slider" "DropdownButton" "DropdownMenu"
+	category "Display" "Card" "ListTile" "Chip" "Divider" "CircularProgressIndicator" "LinearProgressIndicator" "Badge" "CircleAvatar"
+}

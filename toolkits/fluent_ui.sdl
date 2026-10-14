@@ -1,0 +1,7 @@
+toolkit "fluent_ui" {
+	name "Fluent UI"
+	package "fluent_ui"
+	import "package:fluent_ui/fluent_ui.dart"
+	library "src/controls"
+	exclude "^_" "Theme" "Data$" "Controller" "Painter"
+}

@@ -1,0 +1,7 @@
+toolkit "shadcn_ui" {
+	name "shadcn_ui"
+	package "shadcn_ui"
+	import "package:shadcn_ui/shadcn_ui.dart"
+	library "src/components"
+	exclude "^_" "Theme" "Data$" "Controller" "Provider"
+}

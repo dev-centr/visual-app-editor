@@ -1,0 +1,7 @@
+toolkit "macos_ui" {
+	name "macos_ui"
+	package "macos_ui"
+	import "package:macos_ui/macos_ui.dart"
+	library "src"
+	exclude "^_" "Theme" "Data$" "Controller" "Painter"
+}

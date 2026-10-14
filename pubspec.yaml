@@ -1,0 +1,28 @@
+name: widget_bench
+description: Offline desktop visual UI builder for Flutter apps with pluggable widget toolkits.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  analyzer: ^9.0.0
+  path: ^1.9.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - toolkits/
+    - example/sample_app/pubspec.yaml
+    - example/sample_app/widget_bench.sdl
+    - example/sample_app/lib/main.dart
+    - example/sample_app/lib/pages/home_page.dart
+    - example/sample_app/lib/pages/settings_page.dart

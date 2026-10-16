@@ -1,0 +1,108 @@
+= Service protocol
+:page-audience: Developer
+:toc:
+
+The editing service (`vae_service`) and external language adapters speak *JSON-RPC 2.0*. Each message is framed with a `Content-Length` header, as in LSP:
+
+[source,text]
+----
+Content-Length: 52\r\n
+\r\n
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}
+----
+
+Manifests for non-Dart adapters (for example `adapters/react/toolkits/*.sdl`) are passed as `initialize.manifests`.
+
+The transport is stdio for out-of-process use, or `connectInProcess()` in Dart, which still passes every message through JSON.
+The reference implementation lives in `packages/protocol`. The TypeScript copy of the framing is in `adapters/react/src/rpc.ts`.
+
+== Lifecycle
+
+[cols="1,2,2"]
+|===
+| Method | Params | Result
+
+| `initialize`
+| `clientName?`, `manifests?: string[]` (SDL text), `externalAdapters?: [{id, extensions, command: string[], cwd?}]`
+| `serverInfo {name, version}`, `capabilities {editOps, adapters: [{id, extensions}]}`
+
+| `shutdown`
+| none
+| `null`. The stdio server exits after the response is flushed.
+|===
+
+Any other method except `device/presets` sent before `initialize` fails with `notInitialized` (-32002).
+
+== Project
+
+[cols="1,2,2"]
+|===
+| Method | Params | Result
+
+| `project/open` | `root` | `name`, `root`, `kind` (`flutter` or `node`), `pages: PageInfo[]`, `config`
+| `project/pages` | none | `PageInfo[]`
+| `project/config` | none | the `visual_app_editor.sdl` settings
+| `project/setConfig` | `toolkits?`, `device?`, `seedColor?`, `dark?` | the updated config, written to disk
+| `project/addPage` | `className` | `{file}` (Flutter projects)
+|===
+
+== Documents
+
+[cols="1,2,2"]
+|===
+| Method | Params | Result
+
+| `document/source` | `file` | `{file, source, dirty}`
+| `document/tree` | `file`, `page` | `PageInfo` with `root: TreeNode`
+| `document/edit` | `file`, `page`, `op: EditOp` | `{source, page}`, or the error `editRejected` (-32020)
+| `document/save` | `files?` (default: all dirty) | `{saved: string[]}`
+|===
+
+`EditOp` is `{op, ...}`, where `op` is one of `setArgument {path, name, value}`, `removeArgument {path, name}`, `setPositional {path, index, value}`, `setText {path, value}`, `insertChild {path, snippet, index?}`, `removeNode {path}`, `wrapNode {path, wrapper, slot?, extraArgs?}`, `moveInList {path, delta}` or `replaceSource {text}`.
+Values and snippets are source text in the file's own language.
+
+== Toolkits and devices
+
+[cols="1,2,2"]
+|===
+| Method | Params | Result
+
+| `toolkit/register` | `sdl` | `{ids}` (all known manifest ids)
+| `toolkit/list` | none | `[{id, name, package, import, adapter, loaded, count}]`
+| `toolkit/load` | `id` | `{id, count}`
+| `toolkit/unload` | `id` | `null`
+| `toolkit/palette` | `toolkit?` | `WidgetSpec[]`
+| `device/presets` | none | `DevicePreset[]`
+|===
+
+== Notifications (server to client)
+
+* `document/changed {file}` after every successful edit.
+* `window/logMessage {message}` for progress and errors, for example toolkit scans.
+
+== Adapter methods (service to adapter)
+
+External adapters are child processes that answer these methods:
+
+[cols="1,2,2"]
+|===
+| Method | Params | Result
+
+| `adapter/info` | none | `{id, extensions}` (optional)
+| `adapter/pages` | `path`, `source` | `PageInfo[]` with trees
+| `adapter/applyEdit` | `path`, `source`, `page`, `op` | `{source}`, or the error `editRejected`
+| `adapter/loadToolkit` | `manifest`, `projectRoot?` | `{widgets: WidgetSpec[], source}`
+|===
+
+== Error codes
+
+[cols="1,1"]
+|===
+| Code | Meaning
+
+| -32700 / -32600 / -32601 / -32602 / -32603 | JSON-RPC standard codes
+| -32002 | not initialized
+| -32010 | no project open
+| -32020 | edit rejected (the source is unchanged)
+| -32030 | not found (file, page or toolkit)
+|===

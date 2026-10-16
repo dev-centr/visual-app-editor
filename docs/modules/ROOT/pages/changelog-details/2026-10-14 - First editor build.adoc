@@ -1,9 +1,9 @@
 = 2026-10-14 - First editor build
 :page-audience: Developer
 
-The first working build of Widget Bench.
+The first working build of Visual App Editor.
 
-image::screenshot.png[Widget Bench editing the sample project]
+image::screenshot.png[Visual App Editor editing the sample project]
 
 * Open any Flutter project folder; pages are found from widget classes with a `build` method.
 * Widget tree, canvas with phone / tablet / desktop frames, properties, toolbox, pages, theme and toolkit panels.
@@ -11,5 +11,5 @@ image::screenshot.png[Widget Bench editing the sample project]
 * Structural source edits (set / remove argument, insert, delete, wrap, reorder) that leave every other byte of the file untouched; edits that would not parse are refused.
 * Code view with apply, undo / redo, Ctrl+S save.
 * *Run* button: `flutter run` on the desktop device with hot reload on save.
-* Project settings in `widget_bench.sdl`.
+* Project settings in `visual_app_editor.sdl`.
 * Windows (Inno Setup), Linux (AppImage, .deb) and macOS (.dmg) packaging scripts, built in CI for Windows x64 / arm64, Linux x64 / arm64 and macOS arm64.

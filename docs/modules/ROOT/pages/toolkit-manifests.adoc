@@ -1,14 +1,14 @@
 = Toolkit manifests
 :page-audience: Developer
 
-A toolkit manifest is a small SDL file that tells Widget Bench which Dart package to scan for widgets and how to group them in the toolbox.
+A toolkit manifest is a small SDL file that tells Visual App Editor which Dart package to scan for widgets and how to group them in the toolbox.
 
 image::screenshot.png[Toolbox and properties generated from scanned widget constructors]
 
 == Where manifests live
 
 * Bundled: `toolkits/*.sdl` inside the app (widgets, material, cupertino, shadcn_ui, forui, fluent_ui, macos_ui).
-* Per project: `<project>/.widget_bench/toolkits/*.sdl`. A project manifest with the same id replaces the bundled one.
+* Per project: `<project>/.visual_app_editor/toolkits/*.sdl`. A project manifest with the same id replaces the bundled one.
 
 == Format
 

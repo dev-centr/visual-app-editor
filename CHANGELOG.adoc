@@ -6,6 +6,9 @@ Functional changes, newest first. Details: link:docs/modules/ROOT/pages/changelo
 |===
 | Date | Change
 
+| 2026-10-16
+| Renamed from Widget Bench to *Visual App Editor* (repository `dev-centr/visual-app-editor`, project file `visual_app_editor.sdl`; `widget_bench.sdl` still read). Split into a framework-neutral core, a headless JSON-RPC editing service, Dart and React/React Native language adapters, and the desktop app as a service client; device mode switcher (phone / tablet / desktop / web).
+
 | 2026-10-14
 | First editor build: open a Flutter project and edit pages visually with source round-trip; toolbox generated from Material, Cupertino and third-party packages; in-process preview; `flutter run` with hot reload on save; installer scripts for Windows, Linux and macOS.
 |===

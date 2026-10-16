@@ -1,9 +1,13 @@
-= Widget Bench specification
+= Visual App Editor: architecture and roadmap
 :page-audience: Developer
 :toc:
 
-Widget Bench is an open-source, offline desktop app, written in Flutter, for building Flutter user interfaces visually.
-This page states what it must do, how it is built, the file formats it reads and writes, and what comes next.
+Visual App Editor is an open-source, offline visual editor for app user interfaces.
+It is a framework-neutral core and editing service. Language adapters plug into it (Dart/Flutter today, React and React Native next), and several front ends sit on top: a Flutter desktop app now, IDE plugins later.
+This page is the architecture and the roadmap. It states what the editor must do, how the modules fit together, the file formats it reads and writes, and what comes next.
+The wire protocol has its own page: xref:protocol.adoc[].
+
+NOTE: The project was called _Widget Bench_ until October 2026. Projects that still have a `widget_bench.sdl` file are read as before; the next save writes `visual_app_editor.sdl`.
 Sections marked *Implemented* describe the current code; *Planned* items are on the roadmap.
 
 image::screenshot.png[Editor layout: navigation rail and widget tree on the left, device canvas in the middle, properties on the right, toolbar on top]
@@ -12,7 +16,8 @@ image::screenshot.png[Editor layout: navigation rail and widget tree on the left
 
 . *Edit real code.* The source of truth is the project's own `.dart` files. There is no proprietary project format that has to be exported.
 . *Keep custom code.* Visual edits change only the expressions they touch. Comments, formatting, state classes, helper methods and imports elsewhere in the file survive byte-for-byte.
-. *Any widget library.* The toolbox is not hard-coded. It is generated from the public widget constructors of whichever packages the project uses.
+. *Any widget library.* The toolbox is not hard-coded. It is generated from the public widget constructors (or component props) of whichever packages the project uses.
+. *Any framework, one core.* The tree model, catalog, edit operations and device presets are framework-neutral. Each language adds an adapter, not a new editor.
 . *Offline.* No account, no cloud service, no telemetry. Everything works from the local Flutter SDK and pub cache.
 . *Desktop first.* Windows, Linux and macOS, x64 and arm64 where Flutter supports the host.
 
@@ -50,34 +55,126 @@ image::screenshot.png[Editor layout: navigation rail and widget tree on the left
 | Last action, edit errors and live-run output.
 |===
 
-The editor uses a dark theme. The canvas uses the project's preview theme (seed colour and brightness from `widget_bench.sdl`).
+The editor uses a dark theme. The canvas uses the project's preview theme (seed colour and brightness from `visual_app_editor.sdl`).
 
 == Architecture
 
+*Implemented* unless marked.
+
+=== Modules
+
 [source,text]
 ----
-lib/
-  main.dart                    entry point, --version, --screenshot
-  src/sdl/sdl.dart             SDL reader / writer
-  src/toolkit/toolkit.dart     WidgetSpec, WidgetParam, ToolkitManifest, Toolkit
-  src/toolkit/introspector.dart  analyzer-based package scanner
-  src/toolkit/registry.dart    manifest discovery, package resolution, loaded toolkits
-  src/source/dart_document.dart  AST model of pages + structural text edits
-  src/project/project.dart     project folder, documents, widget_bench.sdl
-  src/preview/values.dart      literal expression evaluator
-  src/preview/renderer.dart    in-process widget interpreter
-  src/preview/live_runner.dart flutter run + hot reload driver
-  src/ui/...                   editor shell, panels, canvas, properties, code view
-toolkits/*.sdl                 bundled toolkit manifests
+packages/core       vae_core      framework-neutral model: SDL, tree, catalog, edit ops,
+                                  device presets, LanguageAdapter interface, project config
+packages/protocol   vae_protocol  JSON-RPC 2.0 framing (Content-Length), method names, peer
+packages/service    vae_service   headless editing service: project, documents, undo-free
+                                  edit pipeline, toolkit registry, external adapters;
+                                  bin/vae_service.dart runs it on stdio
+adapters/dart       vae_dart_adapter      Dart/Flutter: analyzer-based introspection,
+                                  source edits, bundled toolkit manifests
+adapters/react      @devcentr/vae-react-adapter  React + React Native via the TypeScript
+                                  compiler API (Node, pnpm); stdio adapter process
+apps/desktop        visual_app_editor     Flutter desktop front end + installers
+plugins/intellij    planned       IntelliJ / Android Studio front end (skeleton)
+plugins/vscode      planned       VS Code front end (skeleton)
 ----
 
-Data flow for one edit:
+Dependency rule: `core` depends on nothing but `path`. `protocol` and the adapters depend on `core`. `service` depends on `core`, `protocol` and the bundled Dart adapter. Front ends depend only on `protocol` (plus `core` for the data classes). No front end imports an adapter.
 
-. The UI calls an `EditorState` action (for example *set argument*).
-. `DartDocument` computes a text edit from AST offsets, applies it to the source string, and re-parses.
-. If the result has syntax errors the edit is rolled back and reported.
-. The page tree is rebuilt from the new AST; selection is restored by tree path.
-. The canvas and panels rebuild. *Save* writes dirty files and, when the live app runs, triggers hot reload.
+[source,text]
+----
+ front ends                 service                     adapters
+ ┌──────────────┐  JSON-RPC ┌──────────────────┐ in-proc ┌──────────────┐
+ │ apps/desktop │◀────────▶│ vae_service       │────────▶│ dart-flutter │
+ │ plugins/*    │  (stdio or│  project, docs,   │  stdio  ├──────────────┤
+ └──────────────┘ in-process)│  toolkits, presets│────────▶│ react (node) │
+                            └──────────────────┘         └──────────────┘
+----
+
+=== Core model (`vae_core`)
+
+Tree::
+`TreeNode` has `type`, a `path` of child indexes from the page root, an optional `slot` (`child`, `body`, `children`, ...), `args` (named or positional source expressions), `children`, source `offset`/`end`, and folded `text`. Dart widgets and JSX elements map onto the same shape: a JSX attribute is a named argument, element children are the `children` slot, and text content is `text`.
+
+Catalog::
+`WidgetSpec` (`class`, `toolkit`, `params`, `category`, `doc`, optional `snippet`) and `ToolkitManifest`. A manifest names its `adapter` (default `dart-flutter`).
+
+Edit protocol::
+A sealed `EditOp` family: `setArgument`, `removeArgument`, `setPositional`, `setText`, `insertChild`, `removeNode`, `wrapNode`, `moveInList`, `replaceSource`. Every op is JSON-serialisable and is applied by the adapter that owns the file. An adapter that cannot express an op rejects it with `editRejected`, and the source is left unchanged.
+
+Device presets::
+`DeviceMode` is one of `phone`, `tablet`, `desktop` or `web`. `DevicePreset` has a logical size, an optional frame and safe areas, and nine built-in presets. Modes are *responsive*: a mode only picks a logical size and chrome. Apps are never edited per mode, and there are no dedicated per-mode layouts. `DevicePresets.modeForWidth` maps an arbitrary width to a mode for breakpoint hints. The desktop toolbar shows a mode switcher (four icons) plus the presets of the active mode.
+
+=== Edit pipeline
+
+. A front end sends `document/edit` with a file, page and op.
+. The service routes the file to the adapter that owns its extension (`.dart` to `dart-flutter`, `.tsx`/`.jsx` to `react`).
+. The adapter computes a text patch from its own AST, applies it and re-parses. A syntax error rejects the edit.
+. The service stores the new source, marks the file dirty, and emits `document/changed` with the new tree.
+. `document/save` writes dirty files. Undo / redo live in the front end as whole-file snapshots replayed with `replaceSource`, so every front end can keep its native undo stack.
+
+=== Headless service
+
+`vae_service` speaks JSON-RPC 2.0 framed with `Content-Length` headers, the same framing as LSP, so any LSP client library can talk to it. It runs:
+
+* *out of process*: `dart run packages/service/bin/vae_service.dart` (or a compiled `vae_service` executable) on stdio. IDE plugins will use this.
+* *in process*: `connectInProcess()` runs the server in the same isolate but still passes every message through JSON encode/decode, so the in-process path exercises the real wire format. The desktop app uses this by default. Setting `VAE_SERVICE=<command>` makes it spawn an external service instead.
+
+See xref:protocol.adoc[] for the method list.
+
+=== Language adapters
+
+[cols="1,1,3"]
+|===
+| Adapter | Status | Notes
+
+| `dart-flutter` (`adapters/dart`)
+| *Implemented*
+| `package:analyzer` (unresolved parse), widget introspection from package sources, all edit ops including const-stripping. Runs inside the service. Bundled manifests are compiled into `bundled_toolkits.dart` (`dart run tool/gen_bundled.dart`) so the service needs no Flutter assets.
+
+| `react` (`adapters/react`)
+| *Implemented (first cut)*
+| TypeScript compiler API (`typescript` 5.9; the JS API, not the native TS 7 port). Finds components: capitalised function declarations, `const` arrows, `memo`/`forwardRef` wrappers and class `render()`. The root is the returned JSX. All edit ops map onto JSX: props, text children, insert/remove/wrap/reorder elements. Toolkits: a fixed catalog for intrinsic DOM elements (`react-dom`), and real props introspection of any installed package via the type checker on its `.d.ts`, with a built-in React Native core catalog as fallback. Runs as a Node child process (`node adapters/react/dist/cli.js`), registered with `initialize.externalAdapters`.
+
+| `react-native`
+| *Implemented, shares `react`*
+| Same parser and edits; `toolkits/react-native.sdl` selects the catalog. Preview rendering is planned (see <<preview>>).
+
+| Others
+| *Planned*
+| The adapter contract (`adapter/pages`, `adapter/applyEdit`, `adapter/loadToolkit` over stdio) is language-agnostic. Candidates: Vue/Svelte single-file components, Angular templates, Ionic (on top of React/Angular/Vue adapters plus an Ionic catalog), legacy Cordova/PhoneGap HTML apps (HTML adapter), Jetpack Compose and SwiftUI (Kotlin/Swift parsers), .NET MAUI XAML.
+|===
+
+Adding an adapter means implementing `LanguageAdapter` in Dart, or speaking the three `adapter/*` methods from any language, and shipping SDL manifests with `adapter "<id>"`.
+
+=== Front ends
+
+[cols="1,1,3"]
+|===
+| Front end | Status | Notes
+
+| Desktop app (`apps/desktop`)
+| *Implemented*
+| Flutter, Windows/Linux/macOS. `EditorState` is a pure protocol client. In-process rendering is Flutter-only today; for React projects the canvas shows the structural tree.
+
+| IntelliJ / Android Studio (`plugins/intellij`)
+| *Planned* (skeleton)
+| Our own IntelliJ Platform plugin. It spawns the service over stdio and shows a tool window with tree, palette and properties. Edits are applied to the IDE document from the returned source. It does not extend or depend on any other vendor's plugin.
+
+| VS Code (`plugins/vscode`)
+| *Planned* (skeleton)
+| Our own extension using `vscode-jsonrpc` and a webview. Edits are applied as `WorkspaceEdit`s. It is also independent of other vendors' extensions.
+|===
+
+=== Publishing intent
+
+Nothing is published yet. Per the registry choice for each ecosystem, when the APIs settle:
+
+* `vae_core`, `vae_protocol`, `vae_service` and `vae_dart_adapter` go to *pub.dev* (Dart packages; `publish_to: none` until then).
+* `@devcentr/vae-react-adapter` goes to *npm* under the `@devcentr` scope (`"private": true` until then).
+* The IntelliJ plugin goes to the *JetBrains Marketplace*, and the VS Code extension to the *VS Code Marketplace* and *Open VSX*.
+* Desktop installers ship as GitHub Release assets (see <<_packaging_and_delivery>>).
 
 == Toolkit plugins
 
@@ -85,7 +182,7 @@ Data flow for one edit:
 A toolkit is a manifest (see xref:toolkit-manifests.adoc[]) plus the package sources it points at.
 
 Discovery::
-Bundled manifests ship as app assets. Projects can add or override manifests in `.widget_bench/toolkits/`.
+Bundled manifests live in `adapters/<adapter>/toolkits/` and are compiled into the adapter. Projects can add or override manifests in `.visual_app_editor/toolkits/`.
 
 Resolution::
 Package `lib/` folders come from `.dart_tool/package_config.json`. For the `flutter` package the scanner falls back to `$FLUTTER_ROOT` or the `flutter` executable on `PATH`.
@@ -172,13 +269,26 @@ Limits: no user code runs, so custom widgets, state and data-driven content are 
 
 * Connect to the VM service and use the widget inspector protocol to map the running app's selection back to source locations (`creationLocation`), enabling click-to-select in the real app.
 * Embed the running app's frames in the canvas (texture sharing or periodic screenshots via `_flutter.screenshot`) so both previews live in one place.
-* A generated preview harness (`.widget_bench/preview/main.dart`) that wraps one page in `MaterialApp` with mock data, so a single page can run without the app's navigation.
+* A generated preview harness (`.visual_app_editor/preview/main.dart`) that wraps one page in `MaterialApp` with mock data, so a single page can run without the app's navigation.
+
+[[device-preview]]
+=== Live device simulation with `device_preview`
+
+*Planned.*
+For the running app, device modes come from the `device_preview` package (3.x). It is a custom `WidgetsBinding` that simulates screen size, pixel ratio, safe areas, orientation, keyboard, locale, brightness, text scale, accessibility flags and target platform. It has no in-app UI and is driven from Dart. It is inactive in release builds.
+
+. The generated preview harness calls `DevicePreview.enable()` before `runApp`. The user's own `main.dart` is not modified. `device_preview` is added as a `dev_dependency` only on the user's request.
+. The harness registers a VM service extension (`ext.vae.device`) that takes a `DevicePreset` JSON and calls `DevicePreview.controller.update(...)`/`setOrientation(...)`.
+. When the user switches mode or preset in the toolbar, the front end calls the extension, and the running app re-lays out with no rebuild or restart.
+. The in-process canvas keeps using `vae_core` presets, so the static and live previews agree on sizes and safe areas.
+
+React Native's live preview is planned on the same model: a Metro dev server plus a preview harness. React for the web uses a sized iframe with the same presets.
 
 == File formats
 
 All editor configuration uses SDL (https://sdlang.org[Simple Declarative Language]).
 
-=== Project settings: `widget_bench.sdl`
+=== Project settings: `visual_app_editor.sdl`
 
 Lives in the project root. Safe to commit.
 
@@ -186,7 +296,7 @@ Lives in the project root. Safe to commit.
 ----
 project "sample_app" {
 	toolkits "widgets" "material" "cupertino"   // manifest ids to load
-	device "phone"                               // phone | tablet | desktop
+	device "pixel-8"                             // a DevicePreset id; mode follows
 	theme seed="#4B8BFF" brightness="light"      // preview theme only
 }
 ----
@@ -197,7 +307,7 @@ See xref:toolkit-manifests.adoc[].
 
 === Dart sources
 
-Ordinary Flutter code. Widget Bench adds nothing to it: no markers, no generated regions.
+Ordinary Flutter code. Visual App Editor adds nothing to it: no markers, no generated regions.
 
 == Packaging and delivery
 
@@ -205,13 +315,13 @@ Ordinary Flutter code. Widget Bench adds nothing to it: no markers, no generated
 |===
 | Platform | Architectures | Artifact
 
-| Windows | x64, arm64 | Inno Setup installer (`packaging/windows/build-installer.ps1`)
-| Linux | x64, arm64 | AppImage and `.deb` (`packaging/linux/build-packages.sh`)
-| macOS | arm64 | `.dmg` (`packaging/macos/build-dmg.sh`), unsigned
+| Windows | x64, arm64 | Inno Setup installer (`apps/desktop/packaging/windows/build-installer.ps1`)
+| Linux | x64, arm64 | AppImage and `.deb` (`apps/desktop/packaging/linux/build-packages.sh`)
+| macOS | arm64 | `.dmg` (`apps/desktop/packaging/macos/build-dmg.sh`), unsigned
 |===
 
-CI builds every slice on pushes and pull requests and uploads the installers as workflow artifacts.
-The version shown in About and `--version` comes from `--dart-define=WB_VERSION` / `WB_BUILD`, stamped by CI.
+CI builds every slice on pushes and pull requests and uploads the installers as workflow artifacts named `visual-app-editor-<os>-<arch>`.
+The version shown in About and `--version` comes from `--dart-define=VAE_VERSION` / `VAE_BUILD`, stamped by CI.
 
 == Roadmap
 
@@ -227,10 +337,21 @@ The version shown in About and `--version` comes from `--dart-define=WB_VERSION`
 ** VM service inspector link: select in the running app, jump to source.
 ** Embedded live frames in the canvas.
 ** Per-page preview harness with mock data.
+. *0.3.5 - device modes in the live app*
+** Preview harness with `device_preview` and the `ext.vae.device` extension (see <<device-preview>>).
 . *0.4 - toolkit adapters*
 ** Native in-process rendering for shadcn_ui, forui, fluent_ui and macos_ui through optional adapter packages.
 ** Theme panel that edits the app's own `ThemeData` source.
+. *0.5 - multi-framework*
+** React canvas: render the JSX tree in a webview (react-dom) and a React Native Web preview, using the shared device presets.
+** React adapter: import management and prettier formatting of edited regions.
+** Compiled `vae_service` executables in the release assets for IDE plugins.
+. *0.6 - IDE front ends*
+** IntelliJ / Android Studio plugin (tool window, document sync).
+** VS Code extension (webview, `WorkspaceEdit` sync).
+** Publish the libraries (pub.dev, npm) and plugins (JetBrains Marketplace, VS Code Marketplace, Open VSX).
 . *Later*
+** More adapters: Vue/Svelte, Angular, Ionic, legacy Cordova/PhoneGap HTML, Compose, SwiftUI, MAUI XAML.
 ** Components (extract selection into a new widget class).
-** Responsive breakpoints in the canvas.
+** Breakpoint overlays in the canvas from `DevicePresets.modeForWidth`.
 ** Auto-update channel (winget, AppImage update info, Sparkle).

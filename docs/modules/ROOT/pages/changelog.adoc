@@ -1,13 +1,16 @@
 = Changelog
 :page-audience: Developer
 
-Functional changes to Widget Bench, newest first.
+Functional changes to Visual App Editor, newest first.
 
-image::screenshot.png[Widget Bench editor]
+image::screenshot.png[Visual App Editor editor]
 
 [cols="1,3"]
 |===
 | Date | Change
+
+| 2026-10-16
+| xref:changelog-details/2026-10-16 - Rename and modular core.adoc[Rename and modular core]: renamed from Widget Bench to Visual App Editor; framework-neutral core, headless editing service, Dart and React/React Native adapters, device mode switcher.
 
 | 2026-10-14
 | xref:changelog-details/2026-10-14 - First editor build.adoc[First editor build]: open a Flutter project, edit pages visually with source round-trip, toolbox generated from Material, Cupertino and third-party packages, in-process preview, `flutter run` hot reload, desktop installers.

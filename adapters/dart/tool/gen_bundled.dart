@@ -9,7 +9,7 @@ void main() {
       '/// Bundled toolkit manifests keyed by file name.\nconst bundledToolkits = <String, String>{\n');
   for (final f in files) {
     final name = f.uri.pathSegments.last;
-    b.writeln("  '$name': r'''${f.readAsStringSync()}''',");
+    b.writeln("  '$name': r'''${f.readAsStringSync().replaceAll('\r\n', '\n')}''',");
   }
   b.writeln('};');
   File('lib/src/bundled_toolkits.dart').writeAsStringSync(b.toString());

@@ -8,7 +8,7 @@ import { applyEdit, Decoder, encode, handle, loadToolkit, pagesOf } from '../src
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const file = 'Home.tsx';
-const src = fs.readFileSync(path.join(here, 'fixtures', file), 'utf8');
+const src = fs.readFileSync(path.join(here, 'fixtures', file), 'utf8').replace(/\r\n/g, '\n');
 
 describe('parse', () => {
   it('finds components and builds the tree', () => {
@@ -63,6 +63,15 @@ describe('edits round-trip', () => {
 
   it('rejects edits that break the file', () => {
     expect(() => applyEdit(file, src, 'Home', { op: 'insertChild', path: [], snippet: '<Text>' })).toThrow(/break/);
+  });
+});
+
+describe('line endings', () => {
+  it('keeps CRLF files CRLF', () => {
+    const crlf = src.replace(/\r?\n/g, '\r\n');
+    const s = applyEdit(file, crlf, 'Home', { op: 'insertChild', path: [], snippet: '<Text>Added</Text>' });
+    expect(s.replace(/\r\n/g, '')).not.toContain('\n');
+    expect(pagesOf(file, s)[0].root!.children.length).toBe(3);
   });
 });
 

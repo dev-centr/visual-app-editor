@@ -157,6 +157,7 @@ export function applyEdit(file: string, source: string, page: string, op: EditOp
     case 'wrapNode': p = wrapNode(n, sf, op.wrapper, op.extraArgs ?? ''); break;
     case 'moveInList': p = moveInList(n, sf, comp.root, op.path, op.delta); break;
   }
+  if (source.includes('\r\n')) p = { ...p, text: p.text.replace(/\r?\n/g, '\r\n') };
   const out = apply(source, p);
   const check = parseSource(file, out) as ts.SourceFile & { parseDiagnostics?: ts.Diagnostic[] };
   if (check.parseDiagnostics?.length) {

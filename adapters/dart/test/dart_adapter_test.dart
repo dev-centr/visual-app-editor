@@ -34,7 +34,7 @@ void main() {
 
   test('bundled_toolkits.dart is in sync with toolkits/', () {
     for (final f in Directory('toolkits').listSync().whereType<File>()) {
-      expect(bundledToolkits[f.uri.pathSegments.last], f.readAsStringSync(), reason: 'run dart run tool/gen_bundled.dart');
+      expect(bundledToolkits[f.uri.pathSegments.last], f.readAsStringSync().replaceAll('\r\n', '\n'), reason: 'run dart run tool/gen_bundled.dart');
     }
   });
 

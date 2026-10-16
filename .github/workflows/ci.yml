@@ -56,14 +56,20 @@ jobs:
         with:
           channel: stable
           cache: true
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: adapters/react/package.json
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-      # The service test drives the React adapter end to end.
+      # The service test drives the React adapter end to end (dist + runtime deps).
       - uses: actions/download-artifact@v8
         with:
           name: vae-react-adapter-dist
           path: adapters/react/dist
+      - name: React adapter runtime dependencies
+        working-directory: adapters/react
+        run: pnpm install --frozen-lockfile --prod
       - run: flutter pub get
       - run: flutter analyze
       - name: Test pure Dart packages

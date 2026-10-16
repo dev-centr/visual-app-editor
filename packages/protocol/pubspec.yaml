@@ -1,0 +1,12 @@
+name: vae_protocol
+description: Visual App Editor editor protocol - JSON-RPC 2.0 over LSP-style Content-Length framing, shared by the headless service and every front end.
+version: 0.1.0
+publish_to: none
+repository: https://github.com/dev-centr/visual-app-editor
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dev_dependencies:
+  test: ^1.25.0

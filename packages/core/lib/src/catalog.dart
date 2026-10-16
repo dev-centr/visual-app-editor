@@ -1,4 +1,4 @@
-import '../sdl/sdl.dart';
+import 'sdl.dart';
 
 /// One constructor parameter of a palette widget.
 class WidgetParam {
@@ -22,6 +22,22 @@ class WidgetParam {
 
   @override
   String toString() => '${isRequired ? 'required ' : ''}$type $name';
+
+  Map<String, Object?> toJson() => {
+        'name': name,
+        'type': type,
+        'named': isNamed,
+        'required': isRequired,
+        if (defaultValue != null) 'default': defaultValue,
+      };
+
+  factory WidgetParam.fromJson(Map<String, Object?> j) => WidgetParam(
+        name: j['name'] as String,
+        type: j['type'] as String,
+        isNamed: j['named'] as bool? ?? true,
+        isRequired: j['required'] as bool? ?? false,
+        defaultValue: j['default'] as String?,
+      );
 }
 
 /// A palette entry: one public widget constructor discovered in a toolkit.
@@ -34,7 +50,11 @@ class WidgetSpec {
     this.doc,
     this.category = 'Other',
     this.sourceFile,
+    this.snippetOverride,
   });
+
+  /// Adapter-provided insertion snippet (e.g. JSX) replacing the Dart default.
+  final String? snippetOverride;
 
   final String className;
   final String? constructorName;
@@ -43,6 +63,26 @@ class WidgetSpec {
   final String? doc;
   String category;
   final String? sourceFile;
+
+  Map<String, Object?> toJson() => {
+        'class': className,
+        if (constructorName != null) 'constructor': constructorName,
+        'toolkit': toolkitId,
+        'params': [for (final p in params) p.toJson()],
+        if (doc != null) 'doc': doc,
+        'category': category,
+        'snippet': snippet(),
+      };
+
+  factory WidgetSpec.fromJson(Map<String, Object?> j) => WidgetSpec(
+        className: j['class'] as String,
+        constructorName: j['constructor'] as String?,
+        toolkitId: j['toolkit'] as String,
+        params: [for (final p in (j['params'] as List? ?? const [])) WidgetParam.fromJson((p as Map).cast())],
+        doc: j['doc'] as String?,
+        category: j['category'] as String? ?? 'Other',
+        snippetOverride: j['snippet'] as String?,
+      );
 
   String get invocation => constructorName == null ? className : '$className.$constructorName';
 
@@ -58,6 +98,7 @@ class WidgetSpec {
 
   /// Minimal source snippet inserted when the entry is dropped on the tree.
   String snippet() {
+    if (snippetOverride != null) return snippetOverride!;
     final args = <String>[];
     for (final p in params.where((p) => p.isRequired)) {
       final v = placeholderFor(p);
@@ -108,8 +149,11 @@ class ToolkitManifest {
     this.include = const [],
     this.categories = const {},
     this.baseClasses = const [],
+    this.adapter = 'dart-flutter',
   });
 
+  /// Adapter that scans this toolkit (`dart-flutter`, `react`, ...).
+  final String adapter;
   final String id;
   final String name;
   final String package;
@@ -133,6 +177,7 @@ class ToolkitManifest {
           exclude: t.childStrings('exclude'),
           include: t.childStrings('include'),
           baseClasses: t.childStrings('base'),
+          adapter: '${t.childValue('adapter') ?? 'dart-flutter'}',
           categories: {
             for (final c in t.all('category'))
               if (c.values.isNotEmpty) '${c.values.first}': [for (final v in c.values.skip(1)) '$v'],
@@ -140,6 +185,8 @@ class ToolkitManifest {
         ),
     ];
   }
+
+  Map<String, Object?> toJson() => {'id': id, 'name': name, 'package': package, 'import': importUri, 'adapter': adapter};
 
   String categoryOf(String className) {
     for (final e in categories.entries) {

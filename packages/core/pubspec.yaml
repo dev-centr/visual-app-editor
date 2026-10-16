@@ -1,0 +1,12 @@
+name: vae_core
+description: Framework-neutral core of Visual App Editor - component tree model, SDL toolkit catalogs, source-edit operations and device presets.
+version: 0.1.0
+publish_to: none
+repository: https://github.com/dev-centr/visual-app-editor
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dev_dependencies:
+  test: ^1.25.0

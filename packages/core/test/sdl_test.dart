@@ -1,7 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:widget_bench/src/project/project.dart';
-import 'package:widget_bench/src/sdl/sdl.dart';
-import 'package:widget_bench/src/toolkit/toolkit.dart';
+import 'package:test/test.dart';
+import 'package:vae_core/vae_core.dart';
 
 void main() {
   test('parses tags, values, attributes and blocks', () {

@@ -1,5 +1,5 @@
 /// Minimal SDLang (Simple Declarative Language) reader/writer used for
-/// Widget Bench configuration files (`*.sdl`).
+/// Visual App Editor configuration files (`*.sdl`).
 ///
 /// Supports: tags with optional names, string / number / boolean / null
 /// values, `key=value` attributes, nested `{ }` blocks, `//`, `#`, `--` and

@@ -1,0 +1,10 @@
+<idea-plugin>
+  <id>org.devcentr.visual-app-editor</id>
+  <name>Visual App Editor</name>
+  <vendor url="https://docs.devcentr.org/visual-app-editor/">devcentr</vendor>
+  <description>Planned: visual editing of app UI source through the Visual App Editor service.</description>
+  <depends>com.intellij.modules.platform</depends>
+  <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceImplementation="org.devcentr.vae.VaeServiceClient"/>
+  </extensions>
+</idea-plugin>

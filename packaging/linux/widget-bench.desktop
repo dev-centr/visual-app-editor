@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Widget Bench
-Comment=Offline visual UI builder for Flutter apps
-Exec=widget-bench %F
-Icon=widget-bench
-Categories=Development;IDE;
-Terminal=false

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Visual App Editor
+Comment=Offline visual UI builder for Flutter apps
+Exec=visual-app-editor %F
+Icon=visual-app-editor
+Categories=Development;IDE;
+Terminal=false

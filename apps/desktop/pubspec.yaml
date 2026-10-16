@@ -1,0 +1,32 @@
+name: visual_app_editor
+description: Visual App Editor desktop front end - offline visual UI builder for Flutter apps.
+publish_to: none
+version: 0.1.0+1
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  analyzer: ^9.0.0
+  path: ^1.9.0
+  vae_core: any
+  vae_dart_adapter: any
+  vae_protocol: any
+  vae_service: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/sample_app/pubspec.yaml
+    - assets/sample_app/visual_app_editor.sdl
+    - assets/sample_app/lib/main.dart
+    - assets/sample_app/lib/pages/home_page.dart
+    - assets/sample_app/lib/pages/settings_page.dart

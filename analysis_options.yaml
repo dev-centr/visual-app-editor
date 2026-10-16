@@ -1,8 +1,8 @@
-include: package:flutter_lints/flutter.yaml
+include: package:lints/recommended.yaml
 analyzer:
   exclude:
-    - example/**
-    - build/**
-    - windows/**
-    - macos/**
-    - linux/**
+    - "**/test/fixtures/**"
+    - "**/test/sample_app/**"
+    - "apps/**"
+    - "adapters/react/**"
+    - "plugins/**"

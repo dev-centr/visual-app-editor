@@ -1,0 +1,21 @@
+name: vae_service
+description: Headless Visual App Editor service - owns projects, adapters and toolkits and speaks the editor protocol over stdio.
+version: 0.1.0
+publish_to: none
+repository: https://github.com/dev-centr/visual-app-editor
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  path: ^1.9.0
+  vae_core: any
+  vae_dart_adapter: any
+  vae_protocol: any
+
+dev_dependencies:
+  test: ^1.25.0
+
+executables:
+  vae_service: vae_service

@@ -1,11 +1,12 @@
 import 'dart:io';
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:widget_bench/src/source/dart_document.dart';
+import 'package:test/test.dart';
+import 'package:vae_core/vae_core.dart';
+import 'package:vae_dart_adapter/vae_dart_adapter.dart';
 
 void main() {
   late DartDocument d;
-  setUp(() => d = DartDocument(File('example/sample_app/lib/pages/home_page.dart').readAsStringSync()));
+  setUp(() => d = DartDocument(File('test/fixtures/home_page.dart').readAsStringSync()));
 
   test('finds pages and the widget tree', () {
     final p = d.page('HomePage')!;

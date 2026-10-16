@@ -1,0 +1,19 @@
+name: vae_dart_adapter
+description: Dart / Flutter language adapter for Visual App Editor - analyzer-based widget introspection and source round-trip editing.
+version: 0.1.0
+publish_to: none
+repository: https://github.com/dev-centr/visual-app-editor
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  # analyzer 10+ reshaped the AST (NamedArgument, ClassBody, namePart);
+  # port lib/src before raising this.
+  analyzer: ^9.0.0
+  path: ^1.9.0
+  vae_core: any
+
+dev_dependencies:
+  test: ^1.25.0

@@ -3,7 +3,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
-import '../toolkit/introspector.dart' show classNameOf, superclassOf;
+import 'package:vae_core/vae_core.dart' show SourceEditException;
+
+import 'introspector.dart' show classNameOf, superclassOf;
 
 /// A single argument of a widget constructor call in source.
 class SourceArg {
@@ -80,13 +82,6 @@ class PageModel {
   final WidgetNode? root;
   final MethodDeclaration buildMethod;
   final bool isState;
-}
-
-class SourceEditException implements Exception {
-  SourceEditException(this.message);
-  final String message;
-  @override
-  String toString() => message;
 }
 
 /// A text edit: replace `[offset, offset+length)` with [replacement].

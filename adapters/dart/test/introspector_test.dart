@@ -1,6 +1,6 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:widget_bench/src/toolkit/introspector.dart';
-import 'package:widget_bench/src/toolkit/toolkit.dart';
+import 'package:test/test.dart';
+import 'package:vae_dart_adapter/vae_dart_adapter.dart';
+import 'package:vae_core/vae_core.dart';
 
 void main() {
   final m = ToolkitManifest(id: 'kit', name: 'Kit', package: 'fake_kit', importUri: 'package:fake_kit/kit.dart', categories: {

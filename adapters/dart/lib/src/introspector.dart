@@ -5,7 +5,7 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:path/path.dart' as p;
 
-import 'toolkit.dart';
+import 'package:vae_core/vae_core.dart';
 
 /// Widget base classes that mark a class as a widget when the package's
 /// own hierarchy cannot be followed further.

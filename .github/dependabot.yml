@@ -11,3 +11,29 @@ updates:
     commit-message:
       prefix: "ci"
     open-pull-requests-limit: 5
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      pub:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "deps"
+    open-pull-requests-limit: 5
+  - package-ecosystem: "npm"
+    directory: "/adapters/react"
+    schedule:
+      interval: "monthly"
+    groups:
+      npm:
+        patterns:
+          - "*"
+    ignore:
+      # TypeScript 7 is the native port; the adapter needs the JS compiler API.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "deps"
+    open-pull-requests-limit: 5

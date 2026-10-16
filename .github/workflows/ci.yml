@@ -1,7 +1,11 @@
 # Analyze, test, and build installers for release-target pattern `desktop`
 # (windows x64/arm64, linux x64/arm64, macos arm64). No releases or tags here.
 # Action majors verified 2026-10-14: actions/checkout v7.0.1, actions/upload-artifact
-# v7.0.2 (node24), subosito/flutter-action v2.23.0 (composite).
+# v7.0.2 (node24), subosito/flutter-action v2.23.0 (composite); added 2026-10-16:
+# actions/setup-node v7.1.0 (node24), pnpm/action-setup v6.1.0 (node24),
+# actions/download-artifact v8.0.2.
+# Layout: packages/* + adapters/dart (pure Dart), adapters/react (Node/TS),
+# apps/desktop (Flutter app + installers).
 name: CI
 
 on:
@@ -18,8 +22,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  node:
+    name: React adapter (Node/TS)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: adapters/react
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: adapters/react/package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: adapters/react/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - uses: actions/upload-artifact@v7
+        with:
+          name: vae-react-adapter-dist
+          path: adapters/react/dist
+          if-no-files-found: error
+
   test:
-    name: Analyze and test
+    name: Analyze and test (Dart/Flutter)
+    needs: node
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -27,9 +56,26 @@ jobs:
         with:
           channel: stable
           cache: true
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      # The service test drives the React adapter end to end.
+      - uses: actions/download-artifact@v8
+        with:
+          name: vae-react-adapter-dist
+          path: adapters/react/dist
       - run: flutter pub get
       - run: flutter analyze
-      - run: flutter test
+      - name: Test pure Dart packages
+        run: |
+          for d in packages/core packages/protocol packages/service adapters/dart; do
+            echo "::group::$d"; (cd "$d" && dart test) || exit 1; echo "::endgroup::"
+          done
+      - name: Analyze and test desktop app
+        working-directory: apps/desktop
+        run: |
+          flutter analyze
+          flutter test
 
   build:
     name: Build ${{ matrix.triplet }}
@@ -70,33 +116,38 @@ jobs:
           sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev file desktop-file-utils
       - run: flutter pub get
 
+      # Paths below are relative to apps/desktop.
       - name: Windows installer
         if: runner.os == 'Windows'
         shell: pwsh
+        working-directory: apps/desktop
         run: |
           $have = (Get-Command iscc.exe -ErrorAction SilentlyContinue) -or (Test-Path "${env:ProgramFiles(x86)}\Inno Setup *\ISCC.exe") -or (Test-Path "$env:ProgramFiles\Inno Setup *\ISCC.exe")
           if (-not $have) { choco install innosetup -y --no-progress }
           ./packaging/windows/build-installer.ps1 -Arch ${{ matrix.arch }}
       - name: Linux AppImage and deb
         if: runner.os == 'Linux'
+        working-directory: apps/desktop
         run: bash packaging/linux/build-packages.sh
       - name: macOS dmg
         if: runner.os == 'macOS'
+        working-directory: apps/desktop
         run: bash packaging/macos/build-dmg.sh
 
       - name: Smoke test --version
         shell: bash
+        working-directory: apps/desktop
         run: |
           case "${{ runner.os }}" in
-            Windows) build/windows/${{ matrix.arch }}/runner/Release/widget_bench.exe --version | tee version.txt || true ;;
-            Linux) xvfb-run -a build/linux/${{ matrix.arch }}/release/bundle/widget_bench --version | tee version.txt || true ;;
-            macOS) build/macos/Build/Products/Release/widget_bench.app/Contents/MacOS/widget_bench --version | tee version.txt || true ;;
+            Windows) build/windows/${{ matrix.arch }}/runner/Release/visual_app_editor.exe --version | tee version.txt || true ;;
+            Linux) xvfb-run -a build/linux/${{ matrix.arch }}/release/bundle/visual_app_editor --version | tee version.txt || true ;;
+            macOS) build/macos/Build/Products/Release/visual_app_editor.app/Contents/MacOS/visual_app_editor --version | tee version.txt || true ;;
           esac
 
       - uses: actions/upload-artifact@v7
         with:
-          name: widget-bench-${{ matrix.triplet }}
-          path: dist/*
+          name: visual-app-editor-${{ matrix.triplet }}
+          path: apps/desktop/dist/*
           if-no-files-found: error
 
   encoding:

@@ -11,7 +11,7 @@ environment:
 dependencies:
   # analyzer 10+ reshaped the AST (NamedArgument, ClassBody, namePart);
   # port lib/src before raising this.
-  analyzer: ^9.0.0
+  analyzer: ^13.3.0
   path: ^1.9.0
   vae_core: any
 

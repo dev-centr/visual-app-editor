@@ -30,7 +30,7 @@ UninstallDisplayIcon={app}\visual_app_editor.exe
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
-LicenseFile=..\..\LICENSE
+LicenseFile=..\..\..\..\LICENSE
 #if Arch == "arm64"
 ArchitecturesAllowed=arm64
 ArchitecturesInstallIn64BitMode=arm64

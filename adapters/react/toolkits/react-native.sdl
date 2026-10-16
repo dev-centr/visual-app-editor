@@ -1,0 +1,6 @@
+toolkit "react-native" {
+	name "React Native"
+	package "react-native"
+	import "react-native"
+	adapter "react"
+}

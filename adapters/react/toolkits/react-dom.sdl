@@ -1,0 +1,6 @@
+toolkit "html" {
+	name "HTML elements"
+	package "react-dom"
+	import "react-dom"
+	adapter "react"
+}

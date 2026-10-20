@@ -5,7 +5,14 @@
 Nothing is published yet. This page lists what each marketplace requires, so a first release is a checklist rather than a discovery.
 It contains no secrets: tokens and keys belong in repository or environment secrets, never in the repository.
 
-Checked against the vendor docs on 2026-10-20.
+Checked against the vendor docs on 2026-10-20:
+
+* https://code.visualstudio.com/api/working-with-extensions/publishing-extension
+* https://github.com/microsoft/vscode-vsce (README, trusted publishing)
+* https://github.com/eclipse-openvsx/openvsx/wiki/Publishing-Extensions
+* https://github.com/eclipse-openvsx/openvsx/wiki/Namespace-Access
+* https://github.com/eclipse-openvsx/openvsx/wiki/Trusted-Publishing
+* https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html
 
 == Build artifacts
 
@@ -58,7 +65,7 @@ Signing (required)::
 Token::
 * Create a Marketplace token under *Profile | My Tokens*.
 * Pass it as `ORG_GRADLE_PROJECT_intellijPlatformPublishingToken`, read by `intellijPlatform { publishing { token = providers.gradleProperty("intellijPlatformPublishingToken") } }`.
-* Store it as a GitHub Actions secret on a protected environment.
+* Store it as a GitHub Actions secret on a protected environment. Keep a local copy only in a password manager, never in the repository or shell history.
 
 Versions and channels::
 * Every upload needs a new version.
@@ -67,31 +74,66 @@ Versions and channels::
 == VS Code Marketplace
 
 Publisher::
-* Create the publisher `devcentr` at https://marketplace.visualstudio.com/manage. The ID is permanent, and it must match `"publisher"` in `package.json`.
-* Extension *name and display name must be unique* in the Marketplace, so check that `visual-app-editor` / *Visual App Editor* are free before the first publish.
-
-Authentication::
-* *Global Azure DevOps PATs are retired on 2026-12-01.* Publish with Microsoft Entra ID instead:
-** a workload-identity-federated service connection;
-** a managed identity added to the publisher as Contributor;
-** `vsce publish --azure-credential`.
-* A Marketplace (Manage) PAT works only until that date.
+* The publisher exists: https://marketplace.visualstudio.com/publishers/devcentr resolves to publisher name `DevCentr` (display name DevCentr, checked 2026-10-20).
+* `plugins/vscode/package.json` uses `"publisher": "devcentr"`, and Marketplace publisher IDs match case-insensitively. *Confirm the exact ID* on https://marketplace.visualstudio.com/manage before the first publish. The ID is permanent.
+* The extension name and display name must be unique in the Marketplace (`visual-app-editor` / *Visual App Editor*).
 
 Package rules enforced by `vsce`::
-* The icon is a PNG of at least 128×128 (`media/icon.png`), never an SVG.
+* The icon is a PNG of at least 128×128 (`media/icon.png`, 256 px), never an SVG.
 * README/CHANGELOG images must use `https` URLs and must not be SVG, except trusted badges.
 * At most 30 keywords. `README.md`, `CHANGELOG.md` and `LICENSE` are included (the package script copies the root LICENSE).
 * `engines.vscode` (currently `^1.100.0`) must be at least the `@types/vscode` version.
 * Versions are `major.minor.patch` only. Use `--pre-release` for previews, with odd minors for pre-release and even for release.
-* Dependencies are bundled by esbuild, so packaging uses `--no-dependencies`.
+* Dependencies are bundled by esbuild, so packaging uses `--no-dependencies`. Only npm and yarn v1 are supported for dependency packaging.
+
+Authentication: no PATs::
+*Global Azure DevOps PATs are retired on 2026-12-01.* Use one of these.
+
+Option A: Microsoft Entra ID (documented by Microsoft, `vsce` ≥ 2.26.1)::
+. In Azure, create a *user-assigned managed identity*, or an Entra app registration, in a dedicated resource group. Give it the *Reader* role on that resource group, and record its client ID and tenant ID.
+. In GitHub, create an environment (for example `vscode-marketplace`) with required reviewers.
+. On the identity, add a *federated credential* for GitHub Actions:
+** issuer `https://token.actions.githubusercontent.com`;
+** subject `repo:dev-centr/visual-app-editor:environment:vscode-marketplace`;
+** audience `api://AzureADTokenExchange`.
+. Get the identity's Azure DevOps profile ID once, while signed in as that identity:
++
+----
+az rest -u https://app.vssps.visualstudio.com/_apis/profile/profiles/me --resource 499b84ac-1321-427f-aa17-267ca6975798
+----
++
+Take the `id` field. It is not the client ID.
+. In https://marketplace.visualstudio.com/manage, under the publisher's *Members*, add that ID with the *Contributor* role.
+. In the workflow, set `permissions: id-token: write` on the environment job. Run `azure/login` with `client-id`, `tenant-id` and `allow-no-subscriptions: true`, which come from environment variables and are not secrets. Then run `npx @vscode/vsce publish --azure-credential --no-dependencies`.
++
+For a local publish, `az login` as a user who is a member of the publisher, then run `vsce publish --azure-credential`. `vsce` uses the Azure CLI credential.
+
+Option B: Marketplace trusted publishing (newer, `vsce publish --oidc`)::
+* The `vsce` README documents `vsce publish --oidc`. It needs a trusted-publishing policy for the repository and workflow configured on the Marketplace, and `permissions: id-token: write`.
+* It requests a GitHub OIDC token for the `marketplace.visualstudio.com` audience and exchanges it for a Marketplace session token valid for 15 minutes. It never falls back to a PAT.
+* The Marketplace UI for creating the policy is not yet in Microsoft's publishing docs, so check the publisher's management page first.
 
 == Open VSX
 
-* Used by VSCodium, Gitpod, Eclipse Theia and others.
-* Sign in at https://open-vsx.org with GitHub and sign the Eclipse Foundation Publisher Agreement.
-* Create an access token, then claim the `devcentr` namespace with `npx ovsx create-namespace devcentr`.
-* Publish the *same* `.vsix`: `npx ovsx publish visual-app-editor-<version>.vsix -p $OVSX_PAT`.
-* Request namespace verification so the extension is marked as from the verified owner.
+Account (done)::
+* An eclipse.org account with the *same* GitHub username, logged in at https://open-vsx.org, and the Publisher Agreement signed (Settings → Log in with Eclipse → Show Publisher Agreement).
+
+Namespace::
+* The namespace is the `publisher` field: `devcentr`.
+* Creating it makes you a *contributor*, not an owner. Create it with `npx ovsx create-namespace devcentr -p <token>`, using a token from Settings → Access Tokens.
+* Ownership, which shows extensions as verified, is claimed publicly. Open an issue at https://github.com/EclipseFdn/open-vsx.org/issues.
+
+First publish (token required)::
+* `npx ovsx publish visual-app-editor-<version>.vsix -p <token>`.
+* Trusted publishing cannot be registered for an extension that has no active version yet.
+
+Trusted publishing (GitHub OIDC), after the first version::
+* Prerequisites: you are the namespace *owner* (contributor is not enough), the namespace is verified, the Publisher Agreement is signed, and the extension has at least one active version.
+* In https://open-vsx.org go to Settings → Trusted Publishers (`/user-settings/trusted-publishers`) and pick the namespace. Choose GitHub Actions, then enter the owner `dev-centr`, the repository `visual-app-editor`, the workflow *file name* only (for example `publish.yml`), and optionally an environment.
+* There is one trusted publisher per extension. A registration is not tied to a branch or tag, so pin an environment to restrict it.
+* Workflow: `permissions: { contents: read, id-token: write }`, then `npx ovsx publish <vsix> --trusted-publishing`.
+* Remove any `OVSX_PAT` / `--pat`: a token takes precedence over OIDC.
+* If every version is deleted, the exchange fails until a version is active again.
 
 == Release checklist (when the first release is approved)
 

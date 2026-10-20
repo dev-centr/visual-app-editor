@@ -25,3 +25,5 @@ VAE_SERVICE_TEST_CMD="$(command -v dart) run $PWD/../../packages/service/bin/vae
 ```
 
 Install from file: `code --install-extension visual-app-editor-<version>.vsix`, or **Extensions view | ··· | Install from VSIX…**. Publishing: see the docs page *Publishing the IDE plugins*.
+
+The `publisher` in `package.json` is `devcentr`, for the Marketplace publisher *DevCentr*. Confirm the exact publisher ID at https://marketplace.visualstudio.com/manage before the first publish.

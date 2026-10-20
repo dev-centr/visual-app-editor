@@ -45,6 +45,12 @@ void main() {
       }),
       throwsA(isA<RpcException>().having((e) => e.code, 'code', ErrorCodes.editRejected)),
     );
+    final synced = await c.request(Methods.documentSync, {
+      'file': 'lib/pages/extra_page.dart',
+      'source': "import 'package:flutter/material.dart';\nclass ExtraPage extends StatelessWidget {\n  const ExtraPage({super.key});\n  @override\n  Widget build(BuildContext context) => const Text('x');\n}\n",
+    }) as Map;
+    expect([for (final x in synced['pages'] as List) (x as Map)['name']], ['ExtraPage']);
+    await expectLater(c.request(Methods.documentSync, {'file': '../x.dart', 'source': ''}), throwsA(isA<RpcException>()));
     await c.request(Methods.documentSave, {});
     expect(File(p.join(dir.path, 'lib/pages/home_page.dart')).readAsStringSync(), contains('From service'));
     final kits = await c.request(Methods.toolkitList) as List;

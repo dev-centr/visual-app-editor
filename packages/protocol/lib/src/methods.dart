@@ -17,6 +17,8 @@ abstract final class Methods {
   static const documentTree = 'document/tree';
   static const documentEdit = 'document/edit';
   static const documentSave = 'document/save';
+  /// Editor buffer -> service (IDE front ends own the buffer; like LSP didChange).
+  static const documentSync = 'document/sync';
 
   // toolkits
   static const toolkitRegister = 'toolkit/register';

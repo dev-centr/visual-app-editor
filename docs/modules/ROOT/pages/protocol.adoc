@@ -56,6 +56,7 @@ Any other method except `device/presets` sent before `initialize` fails with `no
 | `document/tree` | `file`, `page` | `PageInfo` with `root: TreeNode`
 | `document/edit` | `file`, `page`, `op: EditOp` | `{source, page}`, or the error `editRejected` (-32020)
 | `document/save` | `files?` (default: all dirty) | `{saved: string[]}`
+| `document/sync` | `file` (project-relative), `source` | `{file, changed, pages}`. Pushes the editor's buffer text, including unsaved changes and new files. IDE front ends own the buffer and saving, so a synced file is not marked dirty.
 |===
 
 `EditOp` is `{op, ...}`, where `op` is one of `setArgument {path, name, value}`, `removeArgument {path, name}`, `setPositional {path, index, value}`, `setText {path, value}`, `insertChild {path, snippet, index?}`, `removeNode {path}`, `wrapNode {path, wrapper, slot?, extraArgs?}`, `moveInList {path, delta}` or `replaceSource {text}`.
@@ -105,4 +106,5 @@ External adapters are child processes that answer these methods:
 | -32010 | no project open
 | -32020 | edit rejected (the source is unchanged)
 | -32030 | not found (file, page or toolkit)
+| -32040 | adapter process failed: could not start or exited. The message carries the adapter's stderr tail, and the same text goes out as `window/logMessage` with `type: error`.
 |===

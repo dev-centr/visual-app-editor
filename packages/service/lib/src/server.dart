@@ -166,6 +166,19 @@ class EditorService {
       };
     });
 
+    on(Methods.documentSync, (p) async {
+      final f = p['file'] as String? ?? (throw RpcException(ErrorCodes.invalidParams, 'file is required'));
+      final src = p['source'] as String? ?? (throw RpcException(ErrorCodes.invalidParams, 'source is required'));
+      if (f.startsWith('/') || f.contains('..') || f.contains(':')) throw RpcException(ErrorCodes.invalidParams, 'file must be project-relative');
+      final a = adapterFor(f) ?? (throw RpcException(ErrorCodes.notFound, 'No adapter for $f'));
+      final changed = _proj.sources[f] != src;
+      _proj.sources[f] = src;
+      // The client owns the buffer and saving, so a synced file is not dirty here.
+      _proj.dirty.remove(f);
+      final pages = await a.pages(f, src);
+      return {'file': f, 'changed': changed, 'pages': [for (final pg in pages) if (pg.root != null) pg.toJson(withTree: false)]};
+    });
+
     on(Methods.documentSave, (p) {
       final files = p['files'] is List ? [for (final x in p['files'] as List) '$x'] : _proj.dirty.toList();
       for (final f in files) {

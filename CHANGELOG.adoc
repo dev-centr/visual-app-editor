@@ -6,6 +6,9 @@ Functional changes, newest first. Details: link:docs/modules/ROOT/pages/changelo
 |===
 | Date | Change
 
+| 2026-10-20
+| IntelliJ IDEA / Android Studio plugin and VS Code extension (install from file): widget tree, properties, toolbox and device switcher, with undoable edits through the service. New `document/sync` protocol method. Adapter process failures are now reported (`-32040`) instead of showing no pages. Empty property fields no longer show type names such as `Color`.
+
 | 2026-10-16
 | Renamed from Widget Bench to *Visual App Editor* (repository `dev-centr/visual-app-editor`, project file `visual_app_editor.sdl`; `widget_bench.sdl` still read). Split into a framework-neutral core, a headless JSON-RPC editing service, Dart and React/React Native language adapters, and the desktop app as a service client; device mode switcher (phone / tablet / desktop / web).
 

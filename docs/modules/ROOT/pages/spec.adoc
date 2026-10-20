@@ -76,8 +76,8 @@ adapters/dart       vae_dart_adapter      Dart/Flutter: analyzer-based introspec
 adapters/react      @devcentr/vae-react-adapter  React + React Native via the TypeScript
                                   compiler API (Node, pnpm); stdio adapter process
 apps/desktop        visual_app_editor     Flutter desktop front end + installers
-plugins/intellij    planned       IntelliJ / Android Studio front end (skeleton)
-plugins/vscode      planned       VS Code front end (skeleton)
+plugins/intellij    visual-app-editor-intellij   IntelliJ / Android Studio front end (Kotlin)
+plugins/vscode      visual-app-editor (vsix)     VS Code front end (TypeScript)
 ----
 
 Dependency rule: `core` depends on nothing but `path`. `protocol` and the adapters depend on `core`. `service` depends on `core`, `protocol` and the bundled Dart adapter. Front ends depend only on `protocol` (plus `core` for the data classes). No front end imports an adapter.
@@ -159,12 +159,12 @@ Adding an adapter means implementing `LanguageAdapter` in Dart, or speaking the 
 | Flutter, Windows/Linux/macOS. `EditorState` is a pure protocol client. In-process rendering is Flutter-only today; for React projects the canvas shows the structural tree.
 
 | IntelliJ / Android Studio (`plugins/intellij`)
-| *Planned* (skeleton)
-| Our own IntelliJ Platform plugin. It spawns the service over stdio and shows a tool window with tree, palette and properties. Edits are applied to the IDE document from the returned source. It does not extend or depend on any other vendor's plugin.
+| *Implemented (first version)*
+| Our own IntelliJ Platform plugin (Kotlin, platform 262+). It spawns the service over stdio. The tool window has a tree, properties, a toolbox, a device switcher and a wireframe. Edits are applied via `WriteCommandAction`. It does not extend or depend on any other vendor's plugin. See xref:ide-plugins.adoc[].
 
 | VS Code (`plugins/vscode`)
-| *Planned* (skeleton)
-| Our own extension using `vscode-jsonrpc` and a webview. Edits are applied as `WorkspaceEdit`s. It is also independent of other vendors' extensions.
+| *Implemented (first version)*
+| Our own extension: a tree view plus an Inspector webview (properties, toolbox, device switcher). Edits are applied as `WorkspaceEdit`s. It is also independent of other vendors' extensions. See xref:ide-plugins.adoc[].
 |===
 
 === Publishing intent
@@ -173,7 +173,7 @@ Nothing is published yet. Per the registry choice for each ecosystem, when the A
 
 * `vae_core`, `vae_protocol`, `vae_service` and `vae_dart_adapter` go to *pub.dev* (Dart packages; `publish_to: none` until then).
 * `@devcentr/vae-react-adapter` goes to *npm* under the `@devcentr` scope (`"private": true` until then).
-* The IntelliJ plugin goes to the *JetBrains Marketplace*, and the VS Code extension to the *VS Code Marketplace* and *Open VSX*.
+* The IntelliJ plugin goes to the *JetBrains Marketplace*, and the VS Code extension to the *VS Code Marketplace* and *Open VSX*. Requirements: xref:publishing-ide-plugins.adoc[].
 * Desktop installers ship as GitHub Release assets (see <<_packaging_and_delivery>>).
 
 == Toolkit plugins
@@ -347,8 +347,10 @@ The version shown in About and `--version` comes from `--dart-define=VAE_VERSION
 ** React adapter: import management and prettier formatting of edited regions.
 ** Compiled `vae_service` executables in the release assets for IDE plugins.
 . *0.6 - IDE front ends*
-** IntelliJ / Android Studio plugin (tool window, document sync).
-** VS Code extension (webview, `WorkspaceEdit` sync).
+** [done, first version] IntelliJ / Android Studio plugin and VS Code extension.
+** Compiled `vae_service` bundled with or downloaded by the plugins, so no Dart SDK is needed.
+** Live tree refresh while typing (debounced `document/sync`), and selection that follows the caret.
+** Marketplace icons, change notes and signing.
 ** Publish the libraries (pub.dev, npm) and plugins (JetBrains Marketplace, VS Code Marketplace, Open VSX).
 . *Later*
 ** More adapters: Vue/Svelte, Angular, Ionic, legacy Cordova/PhoneGap HTML, Compose, SwiftUI, MAUI XAML.

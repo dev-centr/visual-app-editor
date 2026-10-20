@@ -1,0 +1,33 @@
+= IDE plugins
+:page-audience: Developer
+
+Two front ends run inside IDEs and talk to the same headless service as the desktop app (xref:protocol.adoc[]).
+Both are our own standalone plugins. They do not extend or depend on any other vendor's language plugin.
+
+[cols="1,2,2"]
+|===
+| | IntelliJ IDEA / Android Studio (`plugins/intellij`) | VS Code (`plugins/vscode`)
+
+| Stack | Kotlin, IntelliJ Platform Gradle Plugin 2.19, platform 2026.2 (build 262+), Java 25 | TypeScript, esbuild, pnpm; VS Code 1.100+
+| Tree | Tool window *Visual App Editor*: page picker, move, wrap, delete, double-click to source | *Widget Tree* view: page picker, inline move / wrap / delete, reveal in editor
+| Properties | Table of the widget's named parameters; blank when unset | Inspector webview; blank when unset, default as placeholder
+| Toolbox | Searchable palette; insert into the selection | Searchable palette in the Inspector; double-click to insert
+| Device switcher | Phone / tablet / desktop / web toggles and presets; wireframe preview at that size | Mode buttons and presets in the Inspector
+| Applying edits | `WriteCommandAction`, one minimal replacement, undoable | `WorkspaceEdit`, one minimal replacement, undoable
+| Settings | *Settings / Tools / Visual App Editor*: service command, React adapter command | `visualAppEditor.serviceCommand`, `visualAppEditor.reactAdapterCommand`
+| Tests | JUnit: JSON, framing, diff, command resolution, props; end-to-end against the real service; `verifyPlugin` | Vitest unit tests; `@vscode/test-electron` end to end (real service, edit, undo)
+|===
+
+How an edit flows:
+
+. The plugin sends `document/sync` with the editor's current text, including unsaved changes and new files.
+. It sends `document/edit` with the op.
+. It turns the returned source into a single minimal text replacement and applies it through the IDE's own document API.
+
+So undo, dirty state, formatting-on-save and VCS behave exactly as for a manual edit.
+Adapter failures, such as the React adapter process dying, come back as error `-32040` with the adapter's stderr and show in the plugin. The plugin never shows an empty tree for them.
+
+The IDE plugins do not render widgets. Live rendering stays with the desktop app's canvas and the planned `device_preview` harness (see xref:spec.adoc#device-preview[]).
+The device switcher sets the same `device` preset in `visual_app_editor.sdl` that the desktop app and the harness use.
+
+Install from file and publishing: xref:publishing-ide-plugins.adoc[].

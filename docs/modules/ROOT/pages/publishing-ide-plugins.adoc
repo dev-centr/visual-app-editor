@@ -1,0 +1,102 @@
+= Publishing the IDE plugins
+:page-audience: Developer
+:toc:
+
+Nothing is published yet. This page lists what each marketplace requires, so a first release is a checklist rather than a discovery.
+It contains no secrets: tokens and keys belong in repository or environment secrets, never in the repository.
+
+Checked against the vendor docs on 2026-10-20.
+
+== Build artifacts
+
+CI builds both plugins on every push and uploads them as workflow artifacts:
+
+[cols="1,2,2"]
+|===
+| Plugin | Artifact | File
+
+| IntelliJ IDEA / Android Studio | `visual-app-editor-intellij` | `visual-app-editor-intellij-<version>.zip` (`./gradlew buildPlugin`)
+| VS Code | `visual-app-editor-vscode` | `visual-app-editor-<version>.vsix` (`pnpm package`)
+|===
+
+== Installing from a file (no marketplace)
+
+IntelliJ IDEA / Android Studio::
+*Settings | Plugins | ⚙ | Install Plugin from Disk…*, choose the `.zip`, and restart if asked.
+The plugin needs platform build 262 or later (IntelliJ IDEA 2026.2+, Android Studio 2026.2+).
+Then set the service under *Settings | Tools | Visual App Editor*.
+
+VS Code::
+`code --install-extension visual-app-editor-<version>.vsix`, or *Extensions view | ··· | Install from VSIX…*.
+Then set `visualAppEditor.serviceCommand` (and optionally `visualAppEditor.reactAdapterCommand`).
+
+Both plugins start the headless service (xref:protocol.adoc[]).
+Until compiled `vae_service` executables ship, point them at `dart run <repo>/packages/service/bin/vae_service.dart` after `flutter pub get` in a checkout.
+
+== JetBrains Marketplace
+
+Account and listing::
+* A JetBrains Account and a vendor profile (organisation `devcentr`) on https://plugins.jetbrains.com.
+* The *first* upload is manual: *Profile | Add new plugin*, then upload the signed zip. Later versions can use `publishPlugin`.
+* JetBrains reviews the plugin before it is listed. Follow the Plugin Overview and Plugin UX guidelines:
+** an English description of at least 40 characters (`<description>` in `plugin.xml`, already present);
+** a vendor URL;
+** `<change-notes>` per version (to add);
+** a 40×40 `META-INF/pluginIcon.svg`, plus `pluginIcon_dark.svg` (to add, derived from `assets/logo-glyph.svg`);
+** a license (MIT, from the repository root).
+* The plugin ID `org.devcentr.visual-app-editor` cannot be changed after the first upload.
+
+Compatibility::
+* `sinceBuild = 262`, with `untilBuild` left open. `verifyPlugin` runs in CI against the recommended IDEs and must stay `Compatible`.
+* Android Studio support comes from depending only on `com.intellij.modules.platform`. To list it explicitly, also verify against an Android Studio build (`ides { create("AI", "<version>") }`).
+
+Signing (required)::
+* Create a signing certificate chain and private key, as described in JetBrains' *Plugin Signing* page.
+* Provide them to Gradle through environment-backed properties only: `CERTIFICATE_CHAIN`, `PRIVATE_KEY`, `PRIVATE_KEY_PASSWORD`, wired into `intellijPlatform { signing { ... } }`.
+* `signPlugin` runs automatically before `publishPlugin`.
+
+Token::
+* Create a Marketplace token under *Profile | My Tokens*.
+* Pass it as `ORG_GRADLE_PROJECT_intellijPlatformPublishingToken`, read by `intellijPlatform { publishing { token = providers.gradleProperty("intellijPlatformPublishingToken") } }`.
+* Store it as a GitHub Actions secret on a protected environment.
+
+Versions and channels::
+* Every upload needs a new version.
+* `intellijPlatform.publishing.channels = listOf("beta")` publishes to a separate channel, which users must add as a custom repository.
+
+== VS Code Marketplace
+
+Publisher::
+* Create the publisher `devcentr` at https://marketplace.visualstudio.com/manage. The ID is permanent, and it must match `"publisher"` in `package.json`.
+* Extension *name and display name must be unique* in the Marketplace, so check that `visual-app-editor` / *Visual App Editor* are free before the first publish.
+
+Authentication::
+* *Global Azure DevOps PATs are retired on 2026-12-01.* Publish with Microsoft Entra ID instead:
+** a workload-identity-federated service connection;
+** a managed identity added to the publisher as Contributor;
+** `vsce publish --azure-credential`.
+* A Marketplace (Manage) PAT works only until that date.
+
+Package rules enforced by `vsce`::
+* The icon is a PNG of at least 128×128 (`media/icon.png`), never an SVG.
+* README/CHANGELOG images must use `https` URLs and must not be SVG, except trusted badges.
+* At most 30 keywords. `README.md`, `CHANGELOG.md` and `LICENSE` are included (the package script copies the root LICENSE).
+* `engines.vscode` (currently `^1.100.0`) must be at least the `@types/vscode` version.
+* Versions are `major.minor.patch` only. Use `--pre-release` for previews, with odd minors for pre-release and even for release.
+* Dependencies are bundled by esbuild, so packaging uses `--no-dependencies`.
+
+== Open VSX
+
+* Used by VSCodium, Gitpod, Eclipse Theia and others.
+* Sign in at https://open-vsx.org with GitHub and sign the Eclipse Foundation Publisher Agreement.
+* Create an access token, then claim the `devcentr` namespace with `npx ovsx create-namespace devcentr`.
+* Publish the *same* `.vsix`: `npx ovsx publish visual-app-editor-<version>.vsix -p $OVSX_PAT`.
+* Request namespace verification so the extension is marked as from the verified owner.
+
+== Release checklist (when the first release is approved)
+
+. Bump the version in `plugins/intellij/gradle.properties` and `plugins/vscode/package.json`, and add change notes.
+. Add the plugin icons, and screenshots for both listings. Screenshots must come from the running IDEs.
+. Run `verifyPlugin` and the VS Code integration test, which run in CI anyway.
+. Upload manually the first time: JetBrains web upload, VS Code via `vsce publish --azure-credential` or a web upload of the `.vsix`, Open VSX via `ovsx publish`.
+. Announce together with the desktop release. The release news page includes an app screenshot (see the roadmap).

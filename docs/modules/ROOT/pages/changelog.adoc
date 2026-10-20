@@ -9,6 +9,9 @@ image::screenshot.png[Visual App Editor editor]
 |===
 | Date | Change
 
+| 2026-10-20
+| xref:changelog-details/2026-10-20 - IDE plugins.adoc[IDE plugins]: IntelliJ / Android Studio plugin and VS Code extension; `document/sync`; adapter failures reported; blank empty property fields.
+
 | 2026-10-16
 | xref:changelog-details/2026-10-16 - Rename and modular core.adoc[Rename and modular core]: renamed from Widget Bench to Visual App Editor; framework-neutral core, headless editing service, Dart and React/React Native adapters, device mode switcher.
 

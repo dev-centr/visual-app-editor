@@ -2,5 +2,7 @@
 ** xref:getting-started.adoc[Getting started]
 ** xref:spec.adoc[Architecture and roadmap]
 ** xref:protocol.adoc[Service protocol]
+** xref:ide-plugins.adoc[IDE plugins]
+** xref:publishing-ide-plugins.adoc[Publishing the IDE plugins]
 ** xref:toolkit-manifests.adoc[Toolkit manifests]
 ** xref:changelog.adoc[Changelog]

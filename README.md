@@ -87,8 +87,8 @@ Panels: pages, toolbox, widget tree, canvas with a phone / tablet / desktop / we
 | `adapters/dart` | Dart/Flutter adapter (`package:analyzer`) and bundled toolkit manifests | implemented |
 | `adapters/react` | React / React Native adapter (TypeScript compiler API, Node, pnpm) | first cut: parse, all edit ops, toolkits |
 | `apps/desktop` | Flutter desktop app and installer scripts | implemented |
-| `plugins/intellij` | IntelliJ / Android Studio plugin (our own, standalone) | planned, skeleton |
-| `plugins/vscode` | VS Code extension (our own, standalone) | planned, skeleton |
+| `plugins/intellij` | IntelliJ / Android Studio plugin (our own, standalone; Kotlin) | first version: tree, properties, toolbox, device switcher |
+| `plugins/vscode` | VS Code extension (our own, standalone; TypeScript) | first version: tree, inspector, device switcher |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -127,6 +127,15 @@ pnpm test                            # builds dist/ and runs the tests
 ```
 
 Headless service: `dart run packages/service/bin/vae_service.dart` speaks the [protocol](docs/modules/ROOT/pages/protocol.adoc) on stdio.
+
+### IDE plugins (install from file)
+
+The plugins aren't in any marketplace yet. CI builds them on every push: download the `visual-app-editor-intellij` and `visual-app-editor-vscode` artifacts.
+
+- **IntelliJ IDEA / Android Studio 2026.2+**: *Settings | Plugins | ⚙ | Install Plugin from Disk…*, choose `visual-app-editor-intellij-<version>.zip`, then set the service command under *Settings | Tools | Visual App Editor*.
+- **VS Code 1.100+**: `code --install-extension visual-app-editor-<version>.vsix`, then set `visualAppEditor.serviceCommand`.
+
+Both start `dart run <repo>/packages/service/bin/vae_service.dart` (or a compiled `vae_service`). Build them yourself with `./gradlew buildPlugin` in `plugins/intellij` and `pnpm install && pnpm package` in `plugins/vscode`. More: [IDE plugins](docs/modules/ROOT/pages/ide-plugins.adoc), [publishing guide](docs/modules/ROOT/pages/publishing-ide-plugins.adoc).
 
 Installers (run from `apps/desktop`): `packaging/windows/build-installer.ps1`, `packaging/linux/build-packages.sh`, `packaging/macos/build-dmg.sh`.
 
@@ -171,7 +180,8 @@ Put extra manifests in `<project>/.visual_app_editor/toolkits/`. Add the package
 - [ ] Native preview adapters for third-party toolkits
 - [ ] Live device modes in the running app with `device_preview`
 - [ ] React / React Native canvas preview
-- [ ] IntelliJ / Android Studio and VS Code plugins
+- [x] IntelliJ / Android Studio and VS Code plugins (first version, install from file)
+- [ ] Plugins on the JetBrains Marketplace, VS Code Marketplace and Open VSX
 - [ ] More adapters (Vue, Svelte, Angular, Ionic, Cordova-era HTML, Compose, SwiftUI)
 
 Full roadmap: [architecture and roadmap](docs/modules/ROOT/pages/spec.adoc#roadmap).
@@ -180,7 +190,7 @@ Full roadmap: [architecture and roadmap](docs/modules/ROOT/pages/spec.adoc#roadm
 
 ## Contributing
 
-Issues and pull requests are welcome. Run `flutter analyze` at the root, `dart test` in each package, `flutter test` in `apps/desktop` and `pnpm test` in `adapters/react` before opening a pull request, and add a changelog line in `CHANGELOG.adoc` for functional changes.
+Issues and pull requests are welcome. Run `flutter analyze` at the root, `dart test` in each package, `flutter test` in `apps/desktop`, `pnpm test` in `adapters/react` and `plugins/vscode`, and `./gradlew test` in `plugins/intellij` before opening a pull request, and add a changelog line in `CHANGELOG.adoc` for functional changes.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

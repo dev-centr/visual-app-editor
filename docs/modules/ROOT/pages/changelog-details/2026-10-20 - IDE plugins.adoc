@@ -1,0 +1,14 @@
+= 2026-10-20 - IDE plugins
+:page-audience: Developer
+
+== New
+
+* *IntelliJ IDEA / Android Studio plugin* (`plugins/intellij`, platform 2026.2+): a tool window with the widget tree, properties, a toolbox, a phone / tablet / desktop / web device switcher and a wireframe preview. Edits go through the service and are applied with `WriteCommandAction`, so they are undoable. Settings page for the service and React adapter commands.
+* *VS Code extension* (`plugins/vscode`, VS Code 1.100+): a Widget Tree view and an Inspector webview (properties, toolbox, device switcher). Edits are applied as a `WorkspaceEdit`, one undo step each.
+* Both install from file (CI artifacts `visual-app-editor-intellij` and `visual-app-editor-vscode`). Nothing is published; see xref:publishing-ide-plugins.adoc[].
+* Protocol: `document/sync` pushes editor buffer text, including unsaved changes and new files.
+
+== Fixed
+
+* When an adapter process (for example the React adapter) cannot start or dies, the service now returns error `-32040` with the adapter's stderr and logs it, instead of returning an empty page list.
+* Desktop properties panel: empty fields no longer show the parameter type (such as `Color`) as if it were a value. Only a real default appears, as a `default: …` hint.

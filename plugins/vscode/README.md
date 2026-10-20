@@ -1,16 +1,27 @@
-# Visual App Editor for VS Code (planned)
+# Visual App Editor for VS Code
 
-**Status: planned, skeleton only. Nothing here builds or ships yet.**
+Our own VS Code extension (TypeScript, esbuild, pnpm). It is a front end for the Visual App Editor service and does not extend or depend on any other vendor's extension.
 
-This is our own VS Code extension, a standalone front end for the Visual App
-Editor service. It does not extend or depend on any other vendor's language
-extension.
+- **Widget Tree** view (Visual App Editor activity bar icon): the tree of the current `.dart` / `.tsx` / `.jsx` file. It has a page picker, inline move up/down, wrap and delete, and a context menu entry to reveal the source.
+- **Inspector** webview:
+  - a device mode switcher (phone / tablet / desktop / web) with presets, saved in `visual_app_editor.sdl`;
+  - properties of the selected widget (unset values stay blank, with the default as placeholder);
+  - a searchable toolbox (double-click to insert into the selection).
+- Edits are applied as a `WorkspaceEdit`: one minimal replacement, one undo step. Unsaved changes are synced to the service before each edit.
 
-Planned shape:
+## Settings
 
-- Spawns `vae_service` over stdio with `vscode-jsonrpc`, using the same
-  Content-Length framing as LSP.
-- A webview panel with the tree, palette and properties. Edits use
-  `document/edit`, and the returned source is applied as a `WorkspaceEdit`, so
-  undo, dirty state and formatting stay native.
-- Live preview uses the device_preview approach described in the spec.
+- `visualAppEditor.serviceCommand`: a compiled `vae_service` executable or `dart run <repo>/packages/service/bin/vae_service.dart`. Leave it empty to use `$VAE_SERVICE`, then `vae_service` on PATH, then `packages/service` in the workspace.
+- `visualAppEditor.reactAdapterCommand` (optional): `node <repo>/adapters/react/dist/cli.js`. This enables `.tsx`/`.jsx` files.
+
+## Build
+
+```sh
+cd plugins/vscode
+pnpm install
+pnpm test             # typecheck + unit tests
+pnpm package          # visual-app-editor-<version>.vsix
+VAE_SERVICE_TEST_CMD="$(command -v dart) run $PWD/../../packages/service/bin/vae_service.dart" pnpm test:integration
+```
+
+Install from file: `code --install-extension visual-app-editor-<version>.vsix`, or **Extensions view | ··· | Install from VSIX…**. Publishing: see the docs page *Publishing the IDE plugins*.

@@ -37,3 +37,30 @@ updates:
     commit-message:
       prefix: "deps"
     open-pull-requests-limit: 5
+  - package-ecosystem: "npm"
+    directory: "/plugins/vscode"
+    schedule:
+      interval: "monthly"
+    groups:
+      vscode-npm:
+        patterns:
+          - "*"
+    ignore:
+      # Raising @types/vscode raises the minimum VS Code version (engines.vscode).
+      - dependency-name: "@types/vscode"
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "deps"
+    open-pull-requests-limit: 5
+  - package-ecosystem: "gradle"
+    directory: "/plugins/intellij"
+    schedule:
+      interval: "monthly"
+    groups:
+      gradle:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "deps"
+    open-pull-requests-limit: 5

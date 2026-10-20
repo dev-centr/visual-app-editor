@@ -2,9 +2,16 @@
   <id>org.devcentr.visual-app-editor</id>
   <name>Visual App Editor</name>
   <vendor url="https://docs.devcentr.org/visual-app-editor/">devcentr</vendor>
-  <description>Planned: visual editing of app UI source through the Visual App Editor service.</description>
+  <description><![CDATA[
+    Visual editing of app UI source code (Flutter <code>.dart</code>, React / React Native <code>.tsx</code>/<code>.jsx</code>)
+    through the Visual App Editor service: widget tree of the current file, a properties panel, a toolbox and a
+    device size switcher. Every change is a normal, undoable edit of your source file.
+    <br/>Requires the <code>vae_service</code> (configure it under Settings | Tools | Visual App Editor).
+  ]]></description>
   <depends>com.intellij.modules.platform</depends>
   <extensions defaultExtensionNs="com.intellij">
-    <projectService serviceImplementation="org.devcentr.vae.VaeServiceClient"/>
+    <toolWindow id="Visual App Editor" anchor="right" factoryClass="org.devcentr.vae.ui.VaeToolWindowFactory" icon="AllIcons.Toolwindows.ToolWindowStructure"/>
+    <applicationConfigurable parentId="tools" instance="org.devcentr.vae.VaeConfigurable" id="org.devcentr.vae.settings" displayName="Visual App Editor"/>
+    <notificationGroup id="Visual App Editor" displayType="BALLOON"/>
   </extensions>
 </idea-plugin>

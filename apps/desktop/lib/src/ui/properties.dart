@@ -132,7 +132,7 @@ class _PropRowState extends State<_PropRow> {
       editor = TextField(
         controller: c,
         style: const TextStyle(fontSize: 12, fontFamily: 'Consolas', fontFamilyFallback: ['Menlo', 'DejaVu Sans Mono', 'monospace']),
-        decoration: InputDecoration(hintText: widget.hint ?? (t == 'String' ? "'text'" : t)),
+        decoration: InputDecoration(hintText: widget.hint == null ? null : 'default: ${widget.hint}'),
         onSubmitted: widget.onSubmit,
         onTapOutside: (_) {
           if (c.text != widget.value) widget.onSubmit(c.text);

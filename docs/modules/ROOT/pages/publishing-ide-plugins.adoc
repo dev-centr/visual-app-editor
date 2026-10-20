@@ -103,6 +103,8 @@ az rest -u https://app.vssps.visualstudio.com/_apis/profile/profiles/me --resour
 +
 The `id` field in the JSON is the member ID. `499b84ac-…` is the fixed Azure DevOps resource ID.
 . *Add the member.* Go to https://marketplace.visualstudio.com/manage/publishers/devcentr → *Members* → *Add*, enter that ID, and choose the *Contributor* role (Microsoft's docs). Community guides report that *Creator* is enough for publishing.
+. *Personal Microsoft accounts:* `--azure-credential` needs a Microsoft Entra ID identity in a tenant. A personal Microsoft account (outlook.com and similar) may have no Entra tenant of its own: `az login` then reports no subscriptions or tenants. Create a free Entra tenant, or use an Azure free account, which brings a tenant. Then add that tenant's user or managed identity to the publisher as above.
+. *Azure CLI tenant-selector crash:* if the interactive account/tenant picker in `az login` crashes, turn it off with `az config set core.login_experience_v2=off` and retry `az login --allow-no-subscriptions`, optionally with `--tenant <tenant-id>`.
 . *Publish locally* instead: `az login --allow-no-subscriptions` as a user who is a member of the publisher, then `npx @vscode/vsce publish --azure-credential --no-dependencies` in `plugins/vscode`. `vsce` uses the Azure CLI credential.
 
 Example workflow. This is *not* in the repository: create `.github/workflows/publish-vscode.yml` only when releasing. It is manual-only.

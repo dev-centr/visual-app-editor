@@ -93,4 +93,27 @@ void main() {
     );
     await c.request(Methods.shutdown);
   }, skip: reactCli.existsSync() ? false : 'build adapters/react first (pnpm build)', timeout: const Timeout(Duration(minutes: 1)));
+
+  test('a failing adapter process surfaces adapterFailed, not an empty page list', () async {
+    final dir = Directory.systemTemp.createTempSync('vae_bad');
+    File(p.join(dir.path, 'package.json')).writeAsStringSync('{"name":"bad"}');
+    File(p.join(dir.path, 'src', 'App.tsx'))
+      ..createSync(recursive: true)
+      ..writeAsStringSync('export const App = () => <div/>;');
+    final bad = File(p.join(dir.path, 'bad_adapter.dart'))..writeAsStringSync('import "dart:io"; void main() { stderr.writeln("boom: missing typescript"); exit(3); }');
+    final c = connectInProcess();
+    final logs = <String>[];
+    c.notifications.where((n) => n.method == Methods.logMessage).listen((n) => logs.add('${n.params['message']}'));
+    await c.request(Methods.initialize, {
+      'externalAdapters': [
+        {'id': 'react', 'extensions': ['.tsx'], 'command': [Platform.resolvedExecutable, bad.path]},
+      ],
+    });
+    await expectLater(
+      c.request(Methods.projectOpen, {'root': dir.path}),
+      throwsA(isA<RpcException>().having((e) => e.code, 'code', ErrorCodes.adapterFailed).having((e) => e.message, 'message', allOf(contains('exited'), contains('boom')))),
+    );
+    expect(logs.join(), contains('boom'));
+    await c.request(Methods.shutdown);
+  }, timeout: const Timeout(Duration(minutes: 1)));
 }

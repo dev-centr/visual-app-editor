@@ -44,4 +44,5 @@ abstract final class ErrorCodes {
   static const noProject = -32010;
   static const editRejected = -32020;
   static const notFound = -32030;
+  static const adapterFailed = -32040;
 }

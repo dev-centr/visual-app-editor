@@ -60,7 +60,7 @@ class EditorService {
   void _register() {
     void on(String m, RpcHandler h, {bool needsInit = true}) => peer.on(m, (p) {
           if (needsInit && !_initialized) throw RpcException(ErrorCodes.notInitialized, 'Call initialize first');
-          return h(p);
+          return _guard(() => h(p));
         });
 
     on(Methods.initialize, (p) {
@@ -212,6 +212,17 @@ class EditorService {
     return {'toolkits': c.toolkits, 'device': c.device, 'seedColor': c.seedColor, 'dark': c.dark};
   }
 
+  /// Adapter process failures are reported to the client, never swallowed.
+  Future<Object?> _guard(FutureOr<Object?> Function() f) async {
+    try {
+      return await f();
+    } on AdapterProcessException catch (e) {
+      log.add(e.message);
+      peer.notify(Methods.logMessage, {'message': e.message, 'type': 'error'});
+      throw RpcException(ErrorCodes.adapterFailed, e.message);
+    }
+  }
+
   Future<List<Map<String, Object?>>> _pages() async {
     final out = <Map<String, Object?>>[];
     for (final e in _proj.sources.entries) {
@@ -219,6 +230,8 @@ class EditorService {
         for (final pg in await adapterFor(e.key)!.pages(e.key, e.value)) {
           if (pg.root != null) out.add(pg.toJson(withTree: false));
         }
+      } on AdapterProcessException {
+        rethrow;
       } catch (err) {
         log.add('Could not read ${e.key}: $err');
       }

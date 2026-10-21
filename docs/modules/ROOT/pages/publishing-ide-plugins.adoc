@@ -2,7 +2,7 @@
 :page-audience: Developer
 :toc:
 
-Nothing is published yet. This page lists what each marketplace requires, so a first release is a checklist rather than a discovery.
+The VS Code extension 0.1.0 is published on the Visual Studio Marketplace as https://marketplace.visualstudio.com/items?itemName=devcentr.visual-app-editor[devcentr.visual-app-editor] (2026-10-20). The JetBrains Marketplace and Open VSX are not published yet. This page lists what each marketplace requires, so a first release is a checklist rather than a discovery.
 It contains no secrets: tokens and keys belong in repository or environment secrets, never in the repository.
 
 Checked against the vendor docs on 2026-10-20:

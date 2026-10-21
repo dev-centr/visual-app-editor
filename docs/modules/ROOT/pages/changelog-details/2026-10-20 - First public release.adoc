@@ -1,0 +1,10 @@
+= 2026-10-20
+:page-audience: Developer
+:hide-page:
+:navtree-parent: changelog.adoc
+
+== First public release 0.1.0
+
+* GitHub Release https://github.com/dev-centr/visual-app-editor/releases/tag/v0.1.0[v0.1.0] with desktop installers: Windows x64/arm64 setup, Linux x64/arm64 AppImage and `.deb`, and an unsigned macOS arm64 `.dmg`. It also carries the IntelliJ / Android Studio plugin zip and the VS Code `.vsix`.
+* The VS Code extension is on the Visual Studio Marketplace as https://marketplace.visualstudio.com/items?itemName=devcentr.visual-app-editor[devcentr.visual-app-editor].
+* Rolling GitHub releases `v0` (latest 0.x) and `v0.1` (latest 0.1.x) carry the same files, for stable download URLs such as `releases/download/v0/<file>`.

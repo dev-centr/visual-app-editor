@@ -7,6 +7,9 @@ Functional changes, newest first. Details: link:docs/modules/ROOT/pages/changelo
 | Date | Change
 
 | 2026-10-20
+| *First public release 0.1.0*: https://github.com/dev-centr/visual-app-editor/releases/tag/v0.1.0[GitHub Release v0.1.0] with Windows x64/arm64, Linux x64/arm64 and macOS arm64 installers, the IntelliJ plugin zip and the VS Code `.vsix`. The VS Code extension is on the https://marketplace.visualstudio.com/items?itemName=devcentr.visual-app-editor[Visual Studio Marketplace]. Rolling releases `v0` and `v0.1` track the latest 0.x and 0.1.x.
+
+| 2026-10-20
 | IntelliJ IDEA / Android Studio plugin and VS Code extension (install from file): widget tree, properties, toolbox and device switcher, with undoable edits through the service. New `document/sync` protocol method. Adapter process failures are now reported (`-32040`) instead of showing no pages. Empty property fields no longer show type names such as `Color`.
 
 | 2026-10-16

@@ -1,13 +1,17 @@
-= 2026-10-16 - Rename and modular core
+= 2026-10-16
 :page-audience: Developer
+:hide-page:
+:navtree-parent: changelog.adoc
 
-== Rename
+== Rename and modular core
+
+=== Rename
 
 * The project is now *Visual App Editor*: repository `dev-centr/visual-app-editor`, app and executable `visual_app_editor`, installers `VisualAppEditor-<version>-...`, CI artifacts `visual-app-editor-<os>-<arch>`.
 * The project settings file is `visual_app_editor.sdl`. Projects with only a `widget_bench.sdl` still open, and the next save writes the new name.
 * Docs: https://docs.devcentr.org/visual-app-editor/.
 
-== Modular architecture
+=== Modular architecture
 
 * `packages/core` (`vae_core`): tree model, toolkit catalog, edit operations, device presets, SDL, and the adapter interface, with no framework dependency.
 * `packages/protocol` and `packages/service`: a headless editing service over JSON-RPC 2.0 with LSP-style framing, usable on stdio or in process. See xref:protocol.adoc[].

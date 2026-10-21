@@ -326,8 +326,8 @@ The version shown in About and `--version` comes from `--dart-define=VAE_VERSION
 == Roadmap
 
 . *0.1 - first public release*
-** Ship the installers above as a GitHub Release.
-** Include a screenshot of the running app on the release news page / newsletter post that announces it.
+** [done 2026-10-20] Ship the installers above as GitHub Release v0.1.0 (with rolling `v0` / `v0.1`), and the VS Code extension on the Visual Studio Marketplace.
+** Announce it with a devcentr.org news post (`dev-centr/devcentr.org`, `content/news/YYYY-MM-DD-slug.adoc`) that includes a screenshot of the running app.
 ** Signed Windows installer and notarized macOS dmg; winget manifest.
 . *0.2 - resolved analysis*
 ** Analysis-server integration for diagnostics and semantic widget detection.

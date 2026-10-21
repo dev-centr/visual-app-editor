@@ -1,5 +1,9 @@
-= 2026-10-14 - First editor build
+= 2026-10-14
 :page-audience: Developer
+:hide-page:
+:navtree-parent: changelog.adoc
+
+== First editor build
 
 The first working build of Visual App Editor.
 

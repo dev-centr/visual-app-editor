@@ -100,7 +100,7 @@ Panels: pages, toolbox, widget tree, canvas with a phone / tablet / desktop / we
 
 ### Install
 
-No public release has shipped yet. Installers are built by CI for every push to `main`; download them from the workflow run's artifacts:
+Download the installers from the [latest release](https://github.com/dev-centr/visual-app-editor/releases/latest) (currently [v0.1.0](https://github.com/dev-centr/visual-app-editor/releases/tag/v0.1.0)). For a stable URL that follows 0.x updates, use `https://github.com/dev-centr/visual-app-editor/releases/download/v0/<file>`; `v0.1` follows patches only. CI also builds them for every push to `main` as workflow artifacts.
 
 | Platform | Architectures | Package |
 | --- | --- | --- |
@@ -128,9 +128,9 @@ pnpm test                            # builds dist/ and runs the tests
 
 Headless service: `dart run packages/service/bin/vae_service.dart` speaks the [protocol](docs/modules/ROOT/pages/protocol.adoc) on stdio.
 
-### IDE plugins (install from file)
+### IDE plugins
 
-The plugins aren't in any marketplace yet. CI builds them on every push: download the `visual-app-editor-intellij` and `visual-app-editor-vscode` artifacts.
+The VS Code extension is on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=devcentr.visual-app-editor) (`devcentr.visual-app-editor`). Both plugins are also attached to each [release](https://github.com/dev-centr/visual-app-editor/releases/latest) for installing from a file, and CI uploads them on every push as the `visual-app-editor-intellij` and `visual-app-editor-vscode` artifacts. The IntelliJ plugin isn't on the JetBrains Marketplace yet.
 
 - **IntelliJ IDEA / Android Studio 2026.2+**: *Settings | Plugins | ⚙ | Install Plugin from Disk…*, choose `visual-app-editor-intellij-<version>.zip`, then set the service command under *Settings | Tools | Visual App Editor*.
 - **VS Code 1.100+**: `code --install-extension visual-app-editor-<version>.vsix`, then set `visualAppEditor.serviceCommand`.
@@ -174,7 +174,8 @@ Put extra manifests in `<project>/.visual_app_editor/toolkits/`. Add the package
 
 ## Roadmap
 
-- [ ] First public release with Windows, Linux and macOS installers
+- [x] First public release with Windows, Linux and macOS installers ([v0.1.0](https://github.com/dev-centr/visual-app-editor/releases/tag/v0.1.0))
+- [ ] Release news post on devcentr.org with an app screenshot
 - [ ] Analysis-server diagnostics and import management
 - [ ] Select-in-running-app through the VM service inspector
 - [ ] Native preview adapters for third-party toolkits

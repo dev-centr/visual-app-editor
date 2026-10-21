@@ -1,20 +1,35 @@
 = Changelog
 :page-audience: Developer
+:toclevels: 3
 
 Functional changes to Visual App Editor, newest first.
 
 image::screenshot.png[Visual App Editor editor]
 
-[cols="1,3"]
-|===
-| Date | Change
+== 2026-10-20
 
-| 2026-10-20
-| xref:changelog-details/2026-10-20 - IDE plugins.adoc[IDE plugins]: IntelliJ / Android Studio plugin and VS Code extension; `document/sync`; adapter failures reported; blank empty property fields.
+First public release, and the IDE plugins.
 
-| 2026-10-16
-| xref:changelog-details/2026-10-16 - Rename and modular core.adoc[Rename and modular core]: renamed from Widget Bench to Visual App Editor; framework-neutral core, headless editing service, Dart and React/React Native adapters, device mode switcher.
+=== First public release 0.1.0
 
-| 2026-10-14
-| xref:changelog-details/2026-10-14 - First editor build.adoc[First editor build]: open a Flutter project, edit pages visually with source round-trip, toolbox generated from Material, Cupertino and third-party packages, in-process preview, `flutter run` hot reload, desktop installers.
-|===
+* GitHub Release v0.1.0 with Windows, Linux and macOS installers, the IntelliJ plugin and the VS Code extension; the extension is on the Visual Studio Marketplace.
+* Details: xref:changelog-details/2026-10-20 - First public release.adoc[First public release 0.1.0].
+
+=== IDE plugins
+
+* IntelliJ / Android Studio plugin and VS Code extension; `document/sync`; adapter failures reported; blank empty property fields.
+* Details: xref:changelog-details/2026-10-20 - IDE plugins.adoc[IDE plugins].
+
+== 2026-10-16
+
+=== Rename and modular core
+
+* Renamed from Widget Bench to Visual App Editor; framework-neutral core, headless editing service, Dart and React/React Native adapters, device mode switcher.
+* Details: xref:changelog-details/2026-10-16 - Rename and modular core.adoc[Rename and modular core].
+
+== 2026-10-14
+
+=== First editor build
+
+* Open a Flutter project, edit pages visually with source round-trip, toolbox generated from Material, Cupertino and third-party packages, in-process preview, `flutter run` hot reload, desktop installers.
+* Details: xref:changelog-details/2026-10-14 - First editor build.adoc[First editor build].

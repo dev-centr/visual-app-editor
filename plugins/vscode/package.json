@@ -70,7 +70,7 @@
     "test:unit": "vitest run",
     "test:integration": "node esbuild.mjs && tsc -p tsconfig.test.json && node out-test/test/integration/runTest.js",
     "test": "pnpm typecheck && pnpm test:unit",
-    "package": "node esbuild.mjs --production && node -e \"require('fs').copyFileSync('../../LICENSE','LICENSE')\" && vsce package --no-dependencies --out visual-app-editor-0.1.0.vsix"
+    "package": "node esbuild.mjs --production && node -e \"require('fs').copyFileSync('../../LICENSE','LICENSE')\" && vsce package --no-dependencies"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

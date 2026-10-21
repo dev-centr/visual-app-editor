@@ -7,7 +7,13 @@
     through the Visual App Editor service: widget tree of the current file, a properties panel, a toolbox and a
     device size switcher. Every change is a normal, undoable edit of your source file.
     <br/>Requires the <code>vae_service</code> (configure it under Settings | Tools | Visual App Editor).
-  ]]></description>
+    <h3>Getting Started</h3>
+    <ol>
+      <li>Install <code>vae_service</code> (a compiled executable, or <code>dart run &lt;repo&gt;/packages/service/bin/vae_service.dart</code>).</li>
+      <li>Set its path under <b>Settings | Tools | Visual App Editor</b>.</li>
+      <li>Open a <code>.dart</code> or <code>.tsx</code> file.</li>
+      <li>Open the <b>Visual App Editor</b> tool window (View | Tool Windows | Visual App Editor).</li>
+    </ol>  ]]></description>
   <depends>com.intellij.modules.platform</depends>
   <extensions defaultExtensionNs="com.intellij">
     <toolWindow id="Visual App Editor" anchor="right" factoryClass="org.devcentr.vae.ui.VaeToolWindowFactory" icon="AllIcons.Toolwindows.ToolWindowStructure"/>

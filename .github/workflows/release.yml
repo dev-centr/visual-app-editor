@@ -1,0 +1,163 @@
+# Publish the IDE plugins when a v* release tag is pushed.
+# Each publish job skips with a notice when its secret is not set, and fails
+# when the plugin/extension version does not match the tag (vX.Y.Z -> X.Y.Z).
+# Actions: same majors as ci.yml (checkout v7, setup-java v6, setup-gradle v6,
+# pnpm/action-setup v6, setup-node v7, upload/download-artifact v7/v8).
+name: Release publish
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  intellij:
+    name: JetBrains Marketplace
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plugins/intellij
+    env:
+      JETBRAINS_MARKETPLACE_TOKEN: ${{ secrets.JETBRAINS_MARKETPLACE_TOKEN }}
+      # Optional plugin signing; signPlugin is skipped when these are empty.
+      CERTIFICATE_CHAIN: ${{ secrets.CERTIFICATE_CHAIN }}
+      PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+      PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
+    steps:
+      - name: Check secret
+        id: gate
+        working-directory: .
+        run: |
+          if [ -z "$JETBRAINS_MARKETPLACE_TOKEN" ]; then
+            echo "::notice title=JetBrains Marketplace::JETBRAINS_MARKETPLACE_TOKEN not set; skipping publish."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -z "$CERTIFICATE_CHAIN" ] || [ -z "$PRIVATE_KEY" ]; then
+            echo "::notice title=JetBrains Marketplace::Signing secrets not set; publishing unsigned."
+          fi
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/checkout@v7
+      - name: Verify version matches tag
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          want="${GITHUB_REF_NAME#v}"
+          have="$(sed -n 's/^pluginVersion *= *//p' gradle.properties | tr -d '[:space:]')"
+          if [ "$have" != "$want" ]; then
+            echo "::error file=plugins/intellij/gradle.properties::pluginVersion is '$have' but tag $GITHUB_REF_NAME expects '$want'."
+            exit 1
+          fi
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 25
+      - if: steps.gate.outputs.run == 'true'
+        uses: gradle/actions/setup-gradle@v6
+      - name: Build and publish
+        if: steps.gate.outputs.run == 'true'
+        run: ./gradlew publishPlugin --console=plain --quiet
+
+  vsix:
+    name: Package VS Code extension
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plugins/vscode
+    outputs:
+      file: ${{ steps.pack.outputs.file }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verify version matches tag
+        run: |
+          want="${GITHUB_REF_NAME#v}"
+          have="$(node -p "require('./package.json').version")"
+          if [ "$have" != "$want" ]; then
+            echo "::error file=plugins/vscode/package.json::version is '$have' but tag $GITHUB_REF_NAME expects '$want'."
+            exit 1
+          fi
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: plugins/vscode/package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: plugins/vscode/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile --reporter=silent
+      - name: Package
+        id: pack
+        run: |
+          pnpm --silent package
+          echo "file=visual-app-editor-${GITHUB_REF_NAME#v}.vsix" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: visual-app-editor-vscode-release
+          path: plugins/vscode/visual-app-editor-*.vsix
+          if-no-files-found: error
+
+  vscode-marketplace:
+    name: VS Code Marketplace
+    needs: vsix
+    runs-on: ubuntu-latest
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+    steps:
+      - name: Check secret
+        id: gate
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "::notice title=VS Code Marketplace::VSCE_PAT not set; skipping publish."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/download-artifact@v8
+        with:
+          name: visual-app-editor-vscode-release
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      # NOTE: Azure DevOps PATs stop working on Dec 1, 2026. Before then, move this to
+      # `vsce publish --azure-credential` with OIDC (azure/login with a federated
+      # credential, permissions: id-token: write) and drop VSCE_PAT.
+      - name: Publish
+        if: steps.gate.outputs.run == 'true'
+        run: npx --yes @vscode/vsce@4 publish --packagePath "${{ needs.vsix.outputs.file }}" --pat "$VSCE_PAT"
+
+  open-vsx:
+    name: Open VSX
+    needs: vsix
+    runs-on: ubuntu-latest
+    env:
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+    steps:
+      - name: Check secret
+        id: gate
+        run: |
+          if [ -z "$OVSX_PAT" ]; then
+            echo "::notice title=Open VSX::OVSX_PAT not set; skipping publish."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/download-artifact@v8
+        with:
+          name: visual-app-editor-vscode-release
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Publish
+        if: steps.gate.outputs.run == 'true'
+        run: npx --yes ovsx publish "${{ needs.vsix.outputs.file }}" --pat "$OVSX_PAT"

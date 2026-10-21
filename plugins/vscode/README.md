@@ -9,8 +9,14 @@ Our own VS Code extension (TypeScript, esbuild, pnpm). It is a front end for the
   - a searchable toolbox (double-click to insert into the selection).
 - Edits are applied as a `WorkspaceEdit`: one minimal replacement, one undo step. Unsaved changes are synced to the service before each edit.
 
-## Settings
+## Getting Started
 
+1. Install `vae_service` (a compiled executable, or `dart run <repo>/packages/service/bin/vae_service.dart`).
+2. Set its path in the `visualAppEditor.serviceCommand` setting (**Settings | Extensions | Visual App Editor**).
+3. Open a `.dart` or `.tsx` file.
+4. Open the **Visual App Editor** view from the activity bar.
+
+## Settings
 - `visualAppEditor.serviceCommand`: a compiled `vae_service` executable or `dart run <repo>/packages/service/bin/vae_service.dart`. Leave it empty to use `$VAE_SERVICE`, then `vae_service` on PATH, then `packages/service` in the workspace.
 - `visualAppEditor.reactAdapterCommand` (optional): `node <repo>/adapters/react/dist/cli.js`. This enables `.tsx`/`.jsx` files.
 

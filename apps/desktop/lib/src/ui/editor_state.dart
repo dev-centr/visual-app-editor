@@ -110,6 +110,9 @@ class EditorState extends ChangeNotifier {
         device: j['device'] as String,
         seedColor: j['seedColor'] as int,
         dark: j['dark'] as bool,
+        fontPreference: j['fontPreference'] as String? ?? 'mixed',
+        uiSansFace: j['uiSansFace'] as String?,
+        uiMonoFace: j['uiMonoFace'] as String?,
       );
 
   Future<void> openProject(String root) async {
@@ -191,6 +194,14 @@ class EditorState extends ChangeNotifier {
 
   Future<void> setDevice(String id) => _setConfig({'device': id});
   Future<void> setTheme({int? seed, bool? dark}) => _setConfig({if (seed != null) 'seedColor': seed, if (dark != null) 'dark': dark});
+
+  Future<void> setTypography({String? fontPreference, String? uiSansFace, String? uiMonoFace}) {
+    final patch = <String, Object?>{};
+    if (fontPreference != null) patch['fontPreference'] = fontPreference;
+    if (uiSansFace != null) patch['uiSansFace'] = uiSansFace;
+    if (uiMonoFace != null) patch['uiMonoFace'] = uiMonoFace;
+    return _setConfig(patch);
+  }
 
   /// Sends one edit op to the service; keeps a source snapshot for undo.
   Future<bool> edit(String label, EditOp op, {bool recordUndo = true}) async {

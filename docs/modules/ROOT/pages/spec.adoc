@@ -40,7 +40,7 @@ image::screenshot.png[Editor layout: navigation rail and widget tree on the left
 | Icons for *Pages*, *Toolbox*, *Tree*, *Theme*, *Toolkits*. Selecting one swaps the left panel.
 
 | Left panel
-| Pages list with *New page*; toolbox with search, category groups and drag sources; widget tree with move up / down, wrap-with and delete; theme seed colour and brightness; toolkit list with load / unload and *pub get*.
+| Pages list with *New page*; toolbox with search, category groups and drag sources; widget tree with move up / down, wrap-with and delete; theme seed colour, brightness, and *typography* (OSS/retail/mixed preference + catalog face ids stored in `visual_app_editor.sdl`); toolkit list with load / unload and *pub get*.
 
 | Canvas (center)
 | The selected page rendered inside a phone, tablet or desktop frame on a dotted backdrop, with zoom. Clicking a widget selects it; the selection is outlined and labelled.

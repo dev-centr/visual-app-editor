@@ -119,6 +119,15 @@ class EditorService {
       if (p['device'] is String) c.device = p['device'] as String;
       if (p['seedColor'] is int) c.seedColor = p['seedColor'] as int;
       if (p['dark'] is bool) c.dark = p['dark'] as bool;
+      if (p['fontPreference'] is String) c.fontPreference = p['fontPreference'] as String;
+      if (p.containsKey('uiSansFace')) {
+        final v = p['uiSansFace'] as String?;
+        c.uiSansFace = (v == null || v.isEmpty) ? null : v;
+      }
+      if (p.containsKey('uiMonoFace')) {
+        final v = p['uiMonoFace'] as String?;
+        c.uiMonoFace = (v == null || v.isEmpty) ? null : v;
+      }
       _proj.saveConfig();
       return _configJson();
     });
@@ -222,7 +231,15 @@ class EditorService {
 
   Map<String, Object?> _configJson() {
     final c = _proj.config;
-    return {'toolkits': c.toolkits, 'device': c.device, 'seedColor': c.seedColor, 'dark': c.dark};
+    return {
+      'toolkits': c.toolkits,
+      'device': c.device,
+      'seedColor': c.seedColor,
+      'dark': c.dark,
+      'fontPreference': c.fontPreference,
+      'uiSansFace': c.uiSansFace,
+      'uiMonoFace': c.uiMonoFace,
+    };
   }
 
   /// Adapter process failures are reported to the client, never swallowed.

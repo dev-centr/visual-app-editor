@@ -27,6 +27,25 @@ project "demo" {
     expect(back.dark, isTrue);
   });
 
+  test('round-trips typography in project config', () {
+    final c = ProjectConfig(
+      fontPreference: 'oss',
+      uiSansFace: 'dm-sans',
+      uiMonoFace: 'jetbrains-mono',
+    );
+    final back = ProjectConfig.parse(c.write('demo'));
+    expect(back.fontPreference, 'oss');
+    expect(back.uiSansFace, 'dm-sans');
+    expect(back.uiMonoFace, 'jetbrains-mono');
+  });
+
+  test('loads bundled typeface catalog', () {
+    final cat = TypefaceCatalog.bundled();
+    expect(cat.byId('dm-sans')?.isOss, isTrue);
+    expect(cat.byId('graphik')?.isRetail, isTrue);
+    expect(cat.ossWithRecommend('oss_ui_sans'), isNotEmpty);
+  });
+
   test('parses toolkit manifests', () {
     final m = ToolkitManifest.parse('''
 toolkit "kit" {

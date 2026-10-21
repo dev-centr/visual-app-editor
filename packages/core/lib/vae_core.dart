@@ -7,4 +7,5 @@ export 'src/devices.dart';
 export 'src/edits.dart';
 export 'src/project_config.dart';
 export 'src/sdl.dart';
+export 'src/typeface_catalog.dart';
 export 'src/tree.dart';

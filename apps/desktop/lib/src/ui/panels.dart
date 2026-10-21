@@ -236,6 +236,17 @@ class ThemePanel extends StatelessWidget {
   const ThemePanel(this.s, {super.key});
   final EditorState s;
   static const seeds = [0xFF6750A4, 0xFF4B8BFF, 0xFF0F9D58, 0xFFE91E63, 0xFFFF9800, 0xFF009688, 0xFF795548, 0xFF37474F];
+  static final _catalog = TypefaceCatalog.bundled();
+
+  List<TypefaceEntry> _sansChoices(String preference) {
+    if (preference == 'retail') return _catalog.faces.where((f) => f.isRetail).toList();
+    if (preference == 'oss') return _catalog.ossWithRecommend('oss_ui_sans').toList();
+    return [
+      ..._catalog.ossWithRecommend('oss_ui_sans'),
+      ..._catalog.faces.where((f) => f.isRetail),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = s.project?.config;
@@ -258,9 +269,68 @@ class ThemePanel extends StatelessWidget {
           ]),
         ),
         SwitchListTile(dense: true, title: const Text('Dark preview'), value: c.dark, onChanged: (v) => s.setTheme(dark: v)),
+        const Padding(padding: EdgeInsets.fromLTRB(12, 16, 12, 4), child: Text('Typography (project lock)', style: TextStyle(fontSize: 12))),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: DropdownButtonFormField<String>(
+            isDense: true,
+            value: c.fontPreference,
+            decoration: const InputDecoration(labelText: 'Preference'),
+            items: const [
+              DropdownMenuItem(value: 'mixed', child: Text('Mixed (OSS + retail)')),
+              DropdownMenuItem(value: 'oss', child: Text('Open / OSS only')),
+              DropdownMenuItem(value: 'retail', child: Text('Retail (licensed)')),
+            ],
+            onChanged: (v) => v == null ? null : s.setTypography(fontPreference: v),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: DropdownButtonFormField<String>(
+            isDense: true,
+            value: c.uiSansFace,
+            decoration: const InputDecoration(labelText: 'UI sans (catalog id)'),
+            items: [
+              const DropdownMenuItem(value: null, child: Text('— not set —')),
+              for (final f in _sansChoices(c.fontPreference))
+                DropdownMenuItem(
+                  value: f.id,
+                  child: Text('${f.display} (${f.tier})'),
+                ),
+            ],
+            onChanged: (v) => s.setTypography(uiSansFace: v ?? ''),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: DropdownButtonFormField<String>(
+            isDense: true,
+            value: c.uiMonoFace,
+            decoration: const InputDecoration(labelText: 'Code mono (catalog id)'),
+            items: [
+              const DropdownMenuItem(value: null, child: Text('— not set —')),
+              for (final f in _catalog.faces.where((f) => f.isOss && (f.recommendTags.contains('oss_code_mono') || f.id.contains('mono'))))
+                DropdownMenuItem(value: f.id, child: Text(f.display)),
+            ],
+            onChanged: (v) => s.setTypography(uiMonoFace: v ?? ''),
+          ),
+        ),
+        if (c.uiSansFace != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              _catalog.byId(c.uiSansFace!)?.fontsourceNpm != null
+                  ? 'Web pin: ${_catalog.byId(c.uiSansFace!)!.fontsourceNpm}'
+                  : _catalog.byId(c.uiSansFace!)?.foundryUrl ?? '',
+              style: const TextStyle(fontSize: 10, color: Bench.muted),
+            ),
+          ),
         const Padding(
           padding: EdgeInsets.all(12),
-          child: Text('Preview theme is stored in visual_app_editor.sdl. It does not change your app\'s ThemeData.', style: TextStyle(fontSize: 11, color: Bench.muted)),
+          child: Text(
+            'Stored in visual_app_editor.sdl (typography). Mirror in .devcentr/fonts.sdl for DevCentr. Does not change app ThemeData or install npm packages yet.',
+            style: TextStyle(fontSize: 11, color: Bench.muted),
+          ),
         ),
       ],
     ]);

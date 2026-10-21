@@ -1,0 +1,80 @@
+// Sync from dev-centr/agent-rules/catalogs/project-typefaces.sdl — do not edit one side only.
+
+catalog "project-typefaces" version "2026.10.20" {
+  source agent_rules "dev-centr/agent-rules/catalogs/project-typefaces.sdl"
+
+  face "dm-sans" {
+    display "DM Sans"
+    tier oss
+    license "OFL-1.1"
+    foundry "Colophon Foundry"
+    roles ui-sans text
+    fontsource npm "@fontsource-variable/dm-sans"
+    google_fonts slug "dm-sans"
+    foundry_url "https://www.colophon-foundry.org/"
+    recommend oss_ui_sans
+  }
+
+  face "source-sans-3" {
+    display "Source Sans 3"
+    tier oss
+    license "OFL-1.1"
+    foundry "Adobe"
+    roles ui-sans text docs
+    fontsource npm "@fontsource/source-sans-3"
+    google_fonts slug "source-sans-3"
+    recommend oss_ui_sans
+  }
+
+  face "inter" {
+    display "Inter"
+    tier oss
+    license "OFL-1.1"
+    foundry "Rasmus Andersson"
+    roles ui-sans text
+    fontsource npm "@fontsource-variable/inter"
+    google_fonts slug "inter"
+    recommend oss_ui_sans
+  }
+
+  face "plus-jakarta-sans" {
+    display "Plus Jakarta Sans"
+    tier oss
+    license "OFL-1.1"
+    foundry "Tokotype"
+    roles ui-sans display
+    fontsource npm "@fontsource-variable/plus-jakarta-sans"
+    google_fonts slug "plus-jakarta-sans"
+    recommend oss_ui_sans
+  }
+
+  face "ibm-plex-sans" {
+    display "IBM Plex Sans"
+    tier oss
+    license "OFL-1.1"
+    foundry "IBM / Plex"
+    roles ui-sans text docs
+    fontsource npm "@fontsource/ibm-plex-sans"
+    google_fonts slug "ibm-plex-sans"
+    recommend oss_ui_sans
+  }
+
+  face "jetbrains-mono" {
+    display "JetBrains Mono"
+    tier oss
+    license "OFL-1.1"
+    foundry "JetBrains"
+    roles code ui-mono
+    fontsource npm "@fontsource/jetbrains-mono"
+    recommend oss_code_mono
+  }
+
+  face "graphik" {
+    display "Graphik"
+    tier retail
+    license "commercial"
+    foundry "Commercial Type"
+    roles ui-sans text display
+    foundry_url "https://commercialtype.com/catalog/graphik"
+  }
+}

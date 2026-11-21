@@ -79,6 +79,16 @@ catalog "project-typefaces" version "2026.10.20" {
     google_fonts slug "source-code-pro"
   }
 
+  face "space-grotesk" {
+    display "Space Grotesk"
+    tier oss
+    license "OFL-1.1"
+    foundry "Florian Karsten"
+    roles ui-sans text display
+    fontsource npm "@fontsource-variable/space-grotesk"
+    google_fonts slug "space-grotesk"
+  }
+
   face "montserrat" {
     display "Montserrat"
     tier oss

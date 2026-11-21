@@ -59,6 +59,26 @@ catalog "project-typefaces" version "2026.10.20" {
     recommend oss_ui_sans
   }
 
+  face "ibm-plex-mono" {
+    display "IBM Plex Mono"
+    tier oss
+    license "OFL-1.1"
+    foundry "IBM / Plex"
+    roles code ui-mono
+    fontsource npm "@fontsource/ibm-plex-mono"
+    google_fonts slug "ibm-plex-mono"
+  }
+
+  face "montserrat" {
+    display "Montserrat"
+    tier oss
+    license "OFL-1.1"
+    foundry "Julieta Ulanovsky"
+    roles ui-sans text display
+    fontsource npm "@fontsource-variable/montserrat"
+    google_fonts slug "montserrat"
+  }
+
   face "jetbrains-mono" {
     display "JetBrains Mono"
     tier oss

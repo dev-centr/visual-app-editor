@@ -69,6 +69,16 @@ catalog "project-typefaces" version "2026.10.20" {
     google_fonts slug "ibm-plex-mono"
   }
 
+  face "source-code-pro" {
+    display "Source Code Pro"
+    tier oss
+    license "OFL-1.1"
+    foundry "Adobe"
+    roles code ui-mono
+    fontsource npm "@fontsource/source-code-pro"
+    google_fonts slug "source-code-pro"
+  }
+
   face "montserrat" {
     display "Montserrat"
     tier oss
